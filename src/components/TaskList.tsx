@@ -5,9 +5,9 @@ import { useState } from "react";
 
 type TaskListProps = {
   tasks: Task[];
-  deleteTask: (id: number) => void;
-  toggleTask: (id: number) => void;
-  editTask: (id: number, title: string) => void;
+  deleteTask: (id: string) => void;
+  toggleTask: (id: string) => void;
+  editTask: (id: string, title: string) => void;
 };
 
 export default function TaskList({
@@ -17,7 +17,7 @@ export default function TaskList({
   editTask,
 }: TaskListProps) {
 
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [editedTitle, setEditedTitle] = useState("");
 
   return (
