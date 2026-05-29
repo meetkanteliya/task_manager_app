@@ -2,25 +2,23 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Kanban, LayoutGrid, Settings, CheckSquare2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Kanban, LayoutGrid, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useSidebarState } from '@/hooks/useSidebarState';
+import { useSidebarContext } from '@/context/sidebar-context';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
-  { href: '/dashboard/tasks', label: 'My Tasks', icon: CheckSquare2 },
   { href: '/dashboard/boards', label: 'Boards', icon: Kanban },
-  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ] as const;
 
 export function AppSidebar({ className }: { className?: string }) {
   const pathname = usePathname();
-  const { isCollapsed, toggleSidebar, isLoading } = useSidebarState();
+  const { isCollapsed, toggleSidebar, isLoading } = useSidebarContext();
   const collapsed = isLoading ? false : isCollapsed;
+
 
   return (
     <aside
@@ -37,10 +35,7 @@ export function AppSidebar({ className }: { className?: string }) {
             <span className="font-semibold">TF</span>
           </div>
           {!collapsed && (
-            <div className="leading-tight">
-              <div className="text-sm font-semibold tracking-tight">TaskFlow</div>
-              <div className="text-xs text-muted-foreground">Workspace</div>
-            </div>
+            <span className="text-sm font-semibold tracking-tight">TaskFlow</span>
           )}
         </Link>
 

@@ -25,6 +25,11 @@ function formatDueDate(value: string | null) {
   }
 }
 
+function isOverdue(task: Task): boolean {
+  if (task.completed || !task.dueDate) return false;
+  return new Date(task.dueDate) < new Date();
+}
+
 function priorityBadge(priority: Task['priority']) {
   switch (priority) {
     case 'high':
@@ -65,6 +70,7 @@ export function TaskCard({
 
   const progress = useMemo(() => taskProgress(task), [task]);
   const due = useMemo(() => formatDueDate(task.dueDate), [task.dueDate]);
+  const overdue = useMemo(() => isOverdue(task), [task]);
   const doneCount = task.subtasks.filter((s) => s.completed).length;
   const totalCount = task.subtasks.length;
 
@@ -113,6 +119,7 @@ export function TaskCard({
       transition={{ duration: 0.15 }}
       className={cn(
         'group rounded-xl border bg-card shadow-sm hover:shadow-md',
+        overdue && 'border-red-500/40 bg-red-500/[0.02]',
         dense ? 'p-3' : 'p-4'
       )}
     >
@@ -195,8 +202,14 @@ export function TaskCard({
               )}
             </span>
             {due && (
-              <span className="inline-flex items-center gap-1">
-                <Calendar className="h-4 w-4" /> Due {due}
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1',
+                  overdue && 'text-red-400 font-medium'
+                )}
+              >
+                <Calendar className={cn('h-4 w-4', overdue && 'text-red-400')} />
+                {overdue ? 'Overdue · ' : 'Due '}{due}
               </span>
             )}
           </div>

@@ -2,10 +2,8 @@
 
 import * as React from 'react';
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
 
-import { useTasks } from '@/hooks/useTasks';
-import { Button } from '@/components/ui/button';
+import { useTasksContext } from '@/context/tasks-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Task } from '@/types/task';
@@ -43,21 +41,40 @@ function LoadingGrid() {
 }
 
 export default function DashboardPage() {
-  const { tasks, isLoading, toggleSubtask, addTask, updateTask, deleteTask } = useTasks();
+  const { tasks, isLoading, searchQuery, toggleSubtask, addTask, updateTask, deleteTask } = useTasksContext();
   const [tab, setTab] = useState<'all' | 'pending' | 'completed' | 'important'>('all');
 
   const filtered = useMemo(() => {
+    // 1. Tab filter
+    let result: Task[];
     switch (tab) {
       case 'pending':
-        return tasks.filter((t) => !t.completed);
+        result = tasks.filter((t) => !t.completed);
+        break;
       case 'completed':
-        return tasks.filter((t) => t.completed);
+        result = tasks.filter((t) => t.completed);
+        break;
       case 'important':
-        return tasks.filter(isImportant);
+        result = tasks.filter(isImportant);
+        break;
       default:
-        return tasks;
+        result = tasks;
     }
-  }, [tasks, tab]);
+
+    // 2. Search filter (title + description, case-insensitive)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (t) =>
+          t.title.toLowerCase().includes(q) ||
+          t.description.toLowerCase().includes(q)
+      );
+    }
+
+    return result;
+  }, [tasks, tab, searchQuery]);
+
+  const isSearching = searchQuery.trim().length > 0;
 
   return (
     <div className="space-y-6">
@@ -66,15 +83,16 @@ export default function DashboardPage() {
           <div className="text-xs font-medium text-muted-foreground">Overview</div>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">My work</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {tasks.length ? `You have ${tasks.length} tasks in your workspace.` : 'Keep it lean. Keep it moving.'}
+            {isSearching
+              ? filtered.length === 0
+                ? `No tasks match "${searchQuery}"`
+                : `${filtered.length} result${filtered.length === 1 ? '' : 's'} for "${searchQuery}"`
+              : tasks.length
+              ? `${tasks.length} task${tasks.length === 1 ? '' : 's'} in your queue.`
+              : 'Keep it lean. Keep it moving.'}
           </p>
         </div>
-        <div className="flex gap-2">
-          <TaskCreateDialog onCreate={addTask} />
-          <Button asChild variant="outline">
-            <Link href="/dashboard/boards">Boards</Link>
-          </Button>
-        </div>
+        <TaskCreateDialog onCreate={addTask} />
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
@@ -108,4 +126,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

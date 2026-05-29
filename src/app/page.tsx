@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BarChart3, CheckCircle2, Kanban, Shield, Sparkles, Zap } from 'lucide-react';
+import { BarChart3, CheckCircle2, Kanban, Sparkles, Zap } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -39,7 +39,7 @@ export default function LandingPage() {
               <Link href="/dashboard">Open dashboard</Link>
             </Button>
             <Button asChild>
-              <Link href="/dashboard">Get started</Link>
+              <Link href="/dashboard">Open app</Link>
             </Button>
           </div>
         </div>
@@ -71,13 +71,13 @@ export default function LandingPage() {
 
               <div className="mt-6 flex flex-wrap gap-4 text-sm text-muted-foreground">
                 <span className="inline-flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" /> Accessible contrast
+                  <CheckCircle2 className="h-4 w-4" /> Task &amp; subtask tracking
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <Shield className="h-4 w-4" /> Production-ready structure
+                  <Kanban className="h-4 w-4" /> Kanban boards
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <Zap className="h-4 w-4" /> Subtle motion only
+                  <Zap className="h-4 w-4" /> Instant local persistence
                 </span>
               </div>
             </div>
@@ -154,8 +154,8 @@ export default function LandingPage() {
             <Link href="/dashboard" className="hover:text-foreground">
               Dashboard
             </Link>
-            <Link href="/dashboard/settings" className="hover:text-foreground">
-              Settings
+            <Link href="/dashboard/boards" className="hover:text-foreground">
+              Boards
             </Link>
           </div>
         </div>

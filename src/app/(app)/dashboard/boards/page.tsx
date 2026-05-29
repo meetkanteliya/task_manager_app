@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 
-import { useTasks } from '@/hooks/useTasks';
+import { useTasksContext } from '@/context/tasks-context';
 import type { Task, TaskStatus } from '@/types/task';
 import { TaskCard } from '@/components/tasks/task-card';
 import { TaskCreateDialog } from '@/components/tasks/task-create-dialog';
@@ -34,7 +34,7 @@ function ColumnSkeleton() {
 }
 
 export default function BoardsPage() {
-  const { tasks, isLoading, addTask, updateTask, deleteTask, toggleSubtask } = useTasks();
+  const { tasks, isLoading, addTask, updateTask, deleteTask, toggleSubtask } = useTasksContext();
 
   const grouped = useMemo(() => {
     const base: Record<TaskStatus, Task[]> = { todo: [], 'in-progress': [], done: [] };
