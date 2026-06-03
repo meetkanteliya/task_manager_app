@@ -176,7 +176,7 @@ describe('localStorage wrapper', () => {
         throw quotaError;
       });
 
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
       const result = setToStorage('test', { data: 'test' });
       expect(result).toBe(false);
@@ -191,7 +191,7 @@ describe('localStorage wrapper', () => {
     it('should handle JSON parse errors gracefully', () => {
       localStorage.setItem('test', 'invalid json {');
 
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
 
       const validator = (data: unknown): data is string => typeof data === 'string';
       const result = getFromStorage('test', validator, 'default');
