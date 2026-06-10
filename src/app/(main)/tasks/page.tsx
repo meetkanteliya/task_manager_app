@@ -17,6 +17,7 @@ export default function TasksPage() {
     addSubtask,
     toggleSubtask,
     deleteSubtask,
+    editTask,
   } = useTasks();
   const [filter, setFilter] = useState<TaskFilterType>("all");
   const [search, setSearch] = useState("");
@@ -98,6 +99,7 @@ export default function TasksPage() {
               addSubtask={addSubtask}
               toggleSubtask={toggleSubtask}
               deleteSubtask={deleteSubtask}
+              editTask={editTask}
             />
           ))}
         </div>

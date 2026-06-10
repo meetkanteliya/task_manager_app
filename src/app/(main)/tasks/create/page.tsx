@@ -9,8 +9,16 @@ export default function CreateTaskPage() {
   const router = useRouter();
   const { addTask } = useTasks();
 
-  const handleCreate = (title: string, priority: TaskPriority) => {
-    addTask(title, priority);
+  const handleCreate = (
+    title: string,
+    priority: TaskPriority,
+    options: {
+      description?: string;
+      dueDate?: string;
+      subtasks: { title: string }[];
+    }
+  ) => {
+    addTask(title, priority, options);
     router.push("/tasks");
   };
 

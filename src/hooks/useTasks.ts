@@ -56,14 +56,27 @@ export function useTasks() {
     setActivities(nextActivities);
   };
 
-  const addTask = (title: string, priority: TaskPriority) => {
+  const addTask = (
+    title: string,
+    priority: TaskPriority,
+    options?: {
+      description?: string;
+      dueDate?: string;
+      subtasks?: { title: string }[];
+    }
+  ) => {
+    const now = Date.now();
     const nextTask: Task = {
-      id: Date.now(),
+      id: now,
       title,
       completed: false,
       priority,
       createdAt: new Date().toISOString(),
-      subtasks: [],
+      description: options?.description || undefined,
+      dueDate: options?.dueDate || undefined,
+      subtasks: (options?.subtasks ?? [])
+        .filter((s) => s.title.trim())
+        .map((s, i) => ({ id: now + i + 1, title: s.title.trim(), completed: false })),
     };
 
     persistTasks([nextTask, ...getTasks()]);
@@ -82,10 +95,21 @@ export function useTasks() {
 
   const toggleTask = (id: number) => {
     const task = tasks.find((item) => item.id === id);
+    const nextCompleted = task ? !task.completed : false;
 
     persistTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
+      tasks.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              completed: nextCompleted,
+              // Cascade: mark all subtasks to match parent state
+              subtasks: item.subtasks.map((s) => ({
+                ...s,
+                completed: nextCompleted,
+              })),
+            }
+          : item
       )
     );
 
@@ -121,23 +145,40 @@ export function useTasks() {
     const subtask = task?.subtasks.find((item) => item.id === subtaskId);
 
     persistTasks(
-      tasks.map((item) =>
-        item.id === taskId
-          ? {
-              ...item,
-              subtasks: item.subtasks.map((subtask) =>
-                subtask.id === subtaskId
-                  ? { ...subtask, completed: !subtask.completed }
-                  : subtask
-              ),
-            }
-          : item
-      )
+      tasks.map((item) => {
+        if (item.id !== taskId) return item;
+
+        const updatedSubtasks = item.subtasks.map((s) =>
+          s.id === subtaskId ? { ...s, completed: !s.completed } : s
+        );
+
+        // Sync parent: complete if all subtasks done, pending if any undone
+        const allDone =
+          updatedSubtasks.length > 0 &&
+          updatedSubtasks.every((s) => s.completed);
+
+        return {
+          ...item,
+          subtasks: updatedSubtasks,
+          completed: allDone,
+        };
+      })
     );
 
     if (task && subtask && !subtask.completed) {
       addActivity("subtask_completed", `Completed subtask in "${task.title}".`);
     }
+  };
+
+  const editTask = (
+    id: number,
+    updates: { title?: string; description?: string; priority?: TaskPriority; dueDate?: string }
+  ) => {
+    persistTasks(
+      tasks.map((item) =>
+        item.id === id ? { ...item, ...updates } : item
+      )
+    );
   };
 
   const deleteSubtask = (taskId: number, subtaskId: number) => {
@@ -183,6 +224,7 @@ export function useTasks() {
     addSubtask,
     toggleSubtask,
     deleteSubtask,
+    editTask,
     removeAllTasks,
     removeAllActivities,
   };

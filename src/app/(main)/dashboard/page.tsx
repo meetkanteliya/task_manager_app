@@ -15,7 +15,7 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-[#2563EB]">
-            Workspace overview
+            Workspace overview 
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Dashboard

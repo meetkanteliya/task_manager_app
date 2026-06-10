@@ -5,6 +5,8 @@ export interface Task {
   createdAt: string;
   priority: TaskPriority;
   subtasks: Subtask[];
+  description?: string;
+  dueDate?: string;
 }
 
 export interface Subtask {
