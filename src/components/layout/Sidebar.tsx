@@ -5,10 +5,13 @@ import { usePathname } from "next/navigation";
 import {
   ClipboardList,
   LayoutDashboard,
+  LogOut,
   PlusCircle,
   Settings,
 } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 import { useTasks } from "@/hooks/useTasks";
+import Logo from "@/components/common/Logo";
 
 const navigation = [
   {
@@ -33,6 +36,39 @@ const navigation = [
   },
 ];
 
+function UserProfile() {
+  const { data: session } = useSession();
+
+  if (!session?.user) return null;
+
+  const initials = (session.user.name || session.user.email || "U")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-slate-700/80 bg-slate-800/60 p-3">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-xs font-bold text-white">
+        {initials}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold">{session.user.name}</p>
+        <p className="truncate text-xs text-slate-400">{session.user.email}</p>
+      </div>
+      <button
+        type="button"
+        onClick={() => signOut({ callbackUrl: "/" })}
+        className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-700 hover:text-red-400"
+        aria-label="Sign out"
+      >
+        <LogOut size={16} />
+      </button>
+    </div>
+  );
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const { stats } = useTasks();
@@ -43,11 +79,11 @@ export default function Sidebar() {
     <>
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col bg-[#0F172A] px-5 py-6 text-white md:flex dark:bg-slate-950">
         <Link href="/dashboard" className="mb-8 flex items-center gap-3 px-2">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-[#2563EB] text-lg font-black">
-            T
-          </span>
+          <Logo size="md" showText={false} />
           <div>
-            <p className="text-lg font-bold">TaskFlow</p>
+            <p className="text-lg font-bold tracking-tight text-white">
+              Task<span className="text-blue-500">Flow</span>
+            </p>
             <p className="text-xs text-slate-400">Project workspace</p>
           </div>
         </Link>
@@ -74,23 +110,28 @@ export default function Sidebar() {
           })}
         </nav>
 
-        <div className="mt-auto rounded-2xl border border-slate-700/80 bg-slate-800/60 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Task summary
-          </p>
+        <div className="mt-auto space-y-4">
+          {/* User profile */}
+          <UserProfile />
 
-          <div className="mt-4 space-y-3 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-300">Total Tasks</span>
-              <span className="font-bold">{stats.total}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-300">Pending Tasks</span>
-              <span className="font-bold text-[#EAB308]">{stats.pending}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-300">Completed Tasks</span>
-              <span className="font-bold text-[#22C55E]">{stats.completed}</span>
+          <div className="rounded-2xl border border-slate-700/80 bg-slate-800/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Task summary
+            </p>
+
+            <div className="mt-4 space-y-3 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-300">Total Tasks</span>
+                <span className="font-bold">{stats.total}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-300">Pending Tasks</span>
+                <span className="font-bold text-[#EAB308]">{stats.pending}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-300">Completed Tasks</span>
+                <span className="font-bold text-[#22C55E]">{stats.completed}</span>
+              </div>
             </div>
           </div>
         </div>

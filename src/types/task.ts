@@ -1,5 +1,5 @@
 export interface Task {
-  id: number;
+  id: string;
   title: string;
   completed: boolean;
   createdAt: string;
@@ -7,16 +7,17 @@ export interface Task {
   subtasks: Subtask[];
   description?: string;
   dueDate?: string;
+  completedAt?: string;
 }
 
 export interface Subtask {
-  id: number;
+  id: string;
   title: string;
   completed: boolean;
 }
 
 export interface Activity {
-  id: number;
+  id: string;
   type: ActivityType;
   message: string;
   createdAt: string;

@@ -8,13 +8,13 @@ import { formatDate } from "@/utils/dateFormatter";
 
 type Props = {
   task: Task;
-  deleteTask: (id: number) => void;
-  toggleTask: (id: number) => void;
-  addSubtask: (taskId: number, title: string) => void;
-  toggleSubtask: (taskId: number, subtaskId: number) => void;
-  deleteSubtask: (taskId: number, subtaskId: number) => void;
+  deleteTask: (id: string) => void;
+  toggleTask: (id: string) => void;
+  addSubtask: (taskId: string, title: string) => void;
+  toggleSubtask: (taskId: string, subtaskId: string) => void;
+  deleteSubtask: (taskId: string, subtaskId: string) => void;
   editTask: (
-    id: number,
+    id: string,
     updates: { title?: string; description?: string; priority?: TaskPriority; dueDate?: string }
   ) => void;
 };

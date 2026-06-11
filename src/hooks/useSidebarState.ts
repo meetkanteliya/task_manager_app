@@ -1,12 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { UserPreferences } from '@/types/task';
-import { getPreferences, savePreferences } from '@/utils/localStorage';
 
 /**
  * Custom hook for managing sidebar collapse state with localStorage persistence
- * Automatically saves state changes to localStorage
  */
 export function useSidebarState() {
   const [isCollapsed, setIsCollapsedState] = useState(false);
@@ -15,8 +12,10 @@ export function useSidebarState() {
   // Load sidebar state from localStorage on mount
   useEffect(() => {
     try {
-      const preferences = getPreferences();
-      setIsCollapsedState(preferences.sidebarCollapsed);
+      const saved = localStorage.getItem('sidebarCollapsed');
+      if (saved !== null) {
+        setIsCollapsedState(saved === 'true');
+      }
       setIsLoading(false);
     } catch (err) {
       console.error('Error loading sidebar state:', err);
@@ -32,16 +31,7 @@ export function useSidebarState() {
     
     // Save to localStorage
     try {
-      const currentPreferences = getPreferences();
-      const updatedPreferences: UserPreferences = {
-        ...currentPreferences,
-        sidebarCollapsed: collapsed,
-      };
-      
-      const success = savePreferences(updatedPreferences);
-      if (!success) {
-        console.error('Failed to save sidebar state');
-      }
+      localStorage.setItem('sidebarCollapsed', String(collapsed));
     } catch (err) {
       console.error('Error saving sidebar state:', err);
     }

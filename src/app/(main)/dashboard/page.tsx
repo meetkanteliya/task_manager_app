@@ -6,11 +6,12 @@ import RecentTask from "@/components/dashboard/RecentTask";
 import EmptyState from "@/components/common/EmptyState";
 import ActivityTimeline from "@/components/dashboard/ActivityTimeline";
 import { useTasks } from "@/hooks/useTasks";
+import { StatsSkeleton, TasksSkeleton, TimelineSkeleton } from "@/components/common/Skeleton";
 
 export default function DashboardPage() {
-  const { tasks, stats } = useTasks();
+  const { tasks, stats, isLoading } = useTasks();
 
-  return (
+  return ( 
     <div className="mx-auto max-w-7xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -30,10 +31,16 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      <OverviewCards stats={stats} />
+      {isLoading ? (
+        <StatsSkeleton />
+      ) : (
+        <OverviewCards stats={stats} />
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
-        {tasks.length === 0 ? (
+        {isLoading ? (
+          <TasksSkeleton count={2} />
+        ) : tasks.length === 0 ? (
           <EmptyState
             title="Create your first task"
             description="Start building your backlog with a clear title and priority."
@@ -44,7 +51,11 @@ export default function DashboardPage() {
           <RecentTask tasks={tasks.slice(0, 5)} />
         )}
 
-        <ActivityTimeline />
+        {isLoading ? (
+          <TimelineSkeleton />
+        ) : (
+          <ActivityTimeline />
+        )}
       </div>
     </div>
   );

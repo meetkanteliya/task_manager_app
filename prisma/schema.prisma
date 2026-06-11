@@ -1,0 +1,55 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+model User {
+  id         String     @id @default(cuid())
+  name       String?
+  email      String     @unique
+  password   String
+  createdAt  DateTime   @default(now())
+  tasks      Task[]
+  activities Activity[]
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  dueDate     DateTime?
+  priority    String    @default("medium")
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subtasks    Subtask[]
+
+  @@index([userId])
+}
+
+model Subtask {
+  id        String  @id @default(cuid())
+  title     String
+  completed Boolean @default(false)
+  taskId    String
+  task      Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

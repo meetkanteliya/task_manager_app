@@ -4,13 +4,15 @@ type StatsCardProps = {
   title: string;
   value: number;
   icon: LucideIcon;
-  tone: "blue" | "yellow" | "green";
+  tone: "blue" | "yellow" | "green" | "indigo" | "purple";
 };
 
 const tones = {
-  blue: "bg-blue-50 text-[#2563EB]",
-  yellow: "bg-yellow-50 text-[#EAB308]",
-  green: "bg-green-50 text-[#22C55E]",
+  blue: "bg-blue-50 text-[#2563EB] dark:bg-blue-950/40 dark:text-blue-400",
+  yellow: "bg-yellow-50 text-[#EAB308] dark:bg-yellow-950/40 dark:text-yellow-400",
+  green: "bg-green-50 text-[#22C55E] dark:bg-green-950/40 dark:text-green-400",
+  indigo: "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400",
+  purple: "bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400",
 };
 
 export default function StatsCard({

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useSidebarContext } from '@/context/sidebar-context';
+import Logo from '@/components/common/Logo';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
@@ -31,12 +32,7 @@ export function AppSidebar({ className }: { className?: string }) {
     >
       <div className={cn('flex items-center gap-2 px-3 py-3', collapsed ? 'justify-center' : 'justify-between')}>
         <Link href="/dashboard" className={cn('flex items-center gap-2', collapsed && 'justify-center')}>
-          <div className="grid h-9 w-9 place-items-center rounded-lg bg-secondary text-secondary-foreground">
-            <span className="font-semibold">TF</span>
-          </div>
-          {!collapsed && (
-            <span className="text-sm font-semibold tracking-tight">TaskFlow</span>
-          )}
+          <Logo size="sm" showText={!collapsed} />
         </Link>
 
         <Button

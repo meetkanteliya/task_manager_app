@@ -1,60 +1,73 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Activity, ActivityType, Task, TaskPriority } from "@/types/task";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { Task, Subtask, Activity, TaskPriority } from "@/types/task";
 import {
-  ACTIVITIES_UPDATED_EVENT,
-  clearActivities,
-  clearTasks,
-  getActivities,
-  getTasks,
-  saveActivities,
-  saveTasks,
-  TASKS_UPDATED_EVENT,
-} from "@/utils/localStorage";
+  getTasks as fetchTasks,
+  createTask as serverCreateTask,
+  updateTask as serverUpdateTask,
+  deleteTask as serverDeleteTask,
+  createSubtask as serverCreateSubtask,
+  toggleSubtask as serverToggleSubtask,
+  deleteSubtask as serverDeleteSubtask,
+} from "@/lib/actions/tasks";
+import {
+  getActivities as fetchActivities,
+  clearActivities as serverClearActivities,
+} from "@/lib/actions/activities";
+
+// Map DB task shape to our frontend Task type
+function mapDbTask(dbTask: Awaited<ReturnType<typeof fetchTasks>>[number]): Task {
+  return {
+    id: dbTask.id,
+    title: dbTask.title,
+    completed: dbTask.completed,
+    createdAt: dbTask.createdAt.toISOString(),
+    priority: dbTask.priority as TaskPriority,
+    description: dbTask.description ?? undefined,
+    dueDate: dbTask.dueDate ? dbTask.dueDate.toISOString().split("T")[0] : undefined,
+    completedAt: dbTask.completedAt ? dbTask.completedAt.toISOString() : undefined,
+    subtasks: dbTask.subtasks.map((s) => ({
+      id: s.id,
+      title: s.title,
+      completed: s.completed,
+    })),
+  };
+}
+
+function mapDbActivity(dbActivity: Awaited<ReturnType<typeof fetchActivities>>[number]): Activity {
+  return {
+    id: dbActivity.id,
+    type: dbActivity.type as Activity["type"],
+    message: dbActivity.message,
+    createdAt: dbActivity.createdAt.toISOString(),
+  };
+}
 
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    const syncTasks = () => setTasks(getTasks());
-    const syncActivities = () => setActivities(getActivities());
-
-    syncTasks();
-    syncActivities();
-    window.addEventListener("storage", syncTasks);
-    window.addEventListener("storage", syncActivities);
-    window.addEventListener(TASKS_UPDATED_EVENT, syncTasks);
-    window.addEventListener(ACTIVITIES_UPDATED_EVENT, syncActivities);
-
-    return () => {
-      window.removeEventListener("storage", syncTasks);
-      window.removeEventListener("storage", syncActivities);
-      window.removeEventListener(TASKS_UPDATED_EVENT, syncTasks);
-      window.removeEventListener(ACTIVITIES_UPDATED_EVENT, syncActivities);
-    };
+  const loadData = useCallback(async () => {
+    try {
+      const [dbTasks, dbActivities] = await Promise.all([
+        fetchTasks(),
+        fetchActivities(),
+      ]);
+      setTasks(dbTasks.map(mapDbTask));
+      setActivities(dbActivities.map(mapDbActivity));
+    } catch (error) {
+      console.error("Failed to load data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const persistTasks = (nextTasks: Task[]) => {
-    saveTasks(nextTasks);
-    setTasks(nextTasks);
-  };
-
-  const addActivity = (type: ActivityType, message: string) => {
-    const nextActivities = [
-      {
-        id: Date.now(),
-        type,
-        message,
-        createdAt: new Date().toISOString(),
-      },
-      ...getActivities(),
-    ];
-
-    saveActivities(nextActivities);
-    setActivities(nextActivities);
-  };
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const addTask = (
     title: string,
@@ -65,159 +78,170 @@ export function useTasks() {
       subtasks?: { title: string }[];
     }
   ) => {
-    const now = Date.now();
-    const nextTask: Task = {
-      id: now,
-      title,
-      completed: false,
-      priority,
-      createdAt: new Date().toISOString(),
-      description: options?.description || undefined,
-      dueDate: options?.dueDate || undefined,
-      subtasks: (options?.subtasks ?? [])
-        .filter((s) => s.title.trim())
-        .map((s, i) => ({ id: now + i + 1, title: s.title.trim(), completed: false })),
-    };
+    startTransition(async () => {
+      try {
+        const newTask = await serverCreateTask({
+          title,
+          priority,
+          description: options?.description,
+          dueDate: options?.dueDate,
+        });
 
-    persistTasks([nextTask, ...getTasks()]);
-    addActivity("task_created", `Created task "${title}".`);
-  };
-
-  const deleteTask = (id: number) => {
-    const task = tasks.find((item) => item.id === id);
-
-    persistTasks(tasks.filter((item) => item.id !== id));
-
-    if (task) {
-      addActivity("task_deleted", `Deleted task "${task.title}".`);
-    }
-  };
-
-  const toggleTask = (id: number) => {
-    const task = tasks.find((item) => item.id === id);
-    const nextCompleted = task ? !task.completed : false;
-
-    persistTasks(
-      tasks.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              completed: nextCompleted,
-              // Cascade: mark all subtasks to match parent state
-              subtasks: item.subtasks.map((s) => ({
-                ...s,
-                completed: nextCompleted,
-              })),
+        // Create subtasks if provided
+        if (options?.subtasks) {
+          for (const subtask of options.subtasks) {
+            if (subtask.title.trim()) {
+              await serverCreateSubtask(newTask.id, subtask.title.trim());
             }
-          : item
-      )
-    );
+          }
+        }
 
-    if (task && !task.completed) {
-      addActivity("task_completed", `Completed task "${task.title}".`);
-    }
+        await loadData();
+      } catch (error) {
+        console.error("Failed to add task:", error);
+      }
+    });
   };
 
-  const addSubtask = (taskId: number, title: string) => {
-    const task = tasks.find((item) => item.id === taskId);
-
-    persistTasks(
-      tasks.map((item) =>
-        item.id === taskId
-          ? {
-              ...item,
-              subtasks: [
-                ...item.subtasks,
-                { id: Date.now(), title, completed: false },
-              ],
-            }
-          : item
-      )
-    );
-
-    if (task) {
-      addActivity("subtask_added", `Added subtask to "${task.title}".`);
-    }
+  const deleteTask = (id: string) => {
+    startTransition(async () => {
+      try {
+        await serverDeleteTask(id);
+        await loadData();
+      } catch (error) {
+        console.error("Failed to delete task:", error);
+      }
+    });
   };
 
-  const toggleSubtask = (taskId: number, subtaskId: number) => {
-    const task = tasks.find((item) => item.id === taskId);
-    const subtask = task?.subtasks.find((item) => item.id === subtaskId);
+  const toggleTask = (id: string) => {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
 
-    persistTasks(
-      tasks.map((item) => {
-        if (item.id !== taskId) return item;
+    startTransition(async () => {
+      try {
+        await serverUpdateTask(id, { completed: !task.completed });
+        await loadData();
+      } catch (error) {
+        console.error("Failed to toggle task:", error);
+      }
+    });
+  };
 
-        const updatedSubtasks = item.subtasks.map((s) =>
-          s.id === subtaskId ? { ...s, completed: !s.completed } : s
-        );
+  const addSubtask = (taskId: string, title: string) => {
+    startTransition(async () => {
+      try {
+        await serverCreateSubtask(taskId, title);
+        await loadData();
+      } catch (error) {
+        console.error("Failed to add subtask:", error);
+      }
+    });
+  };
 
-        // Sync parent: complete if all subtasks done, pending if any undone
-        const allDone =
-          updatedSubtasks.length > 0 &&
-          updatedSubtasks.every((s) => s.completed);
+  const toggleSubtask = (taskId: string, subtaskId: string) => {
+    startTransition(async () => {
+      try {
+        await serverToggleSubtask(subtaskId);
+        await loadData();
+      } catch (error) {
+        console.error("Failed to toggle subtask:", error);
+      }
+    });
+  };
 
-        return {
-          ...item,
-          subtasks: updatedSubtasks,
-          completed: allDone,
-        };
-      })
-    );
-
-    if (task && subtask && !subtask.completed) {
-      addActivity("subtask_completed", `Completed subtask in "${task.title}".`);
-    }
+  const deleteSubtask = (taskId: string, subtaskId: string) => {
+    startTransition(async () => {
+      try {
+        await serverDeleteSubtask(subtaskId);
+        await loadData();
+      } catch (error) {
+        console.error("Failed to delete subtask:", error);
+      }
+    });
   };
 
   const editTask = (
-    id: number,
+    id: string,
     updates: { title?: string; description?: string; priority?: TaskPriority; dueDate?: string }
   ) => {
-    persistTasks(
-      tasks.map((item) =>
-        item.id === id ? { ...item, ...updates } : item
-      )
-    );
-  };
-
-  const deleteSubtask = (taskId: number, subtaskId: number) => {
-    persistTasks(
-      tasks.map((task) =>
-        task.id === taskId
-          ? {
-              ...task,
-              subtasks: task.subtasks.filter((subtask) => subtask.id !== subtaskId),
-            }
-          : task
-      )
-    );
+    startTransition(async () => {
+      try {
+        await serverUpdateTask(id, updates);
+        await loadData();
+      } catch (error) {
+        console.error("Failed to edit task:", error);
+      }
+    });
   };
 
   const removeAllTasks = () => {
-    clearTasks();
-    setTasks([]);
+    startTransition(async () => {
+      try {
+        for (const task of tasks) {
+          await serverDeleteTask(task.id);
+        }
+        await loadData();
+      } catch (error) {
+        console.error("Failed to remove all tasks:", error);
+      }
+    });
   };
 
   const removeAllActivities = () => {
-    clearActivities();
-    setActivities([]);
+    startTransition(async () => {
+      try {
+        await serverClearActivities();
+        await loadData();
+      } catch (error) {
+        console.error("Failed to clear activities:", error);
+      }
+    });
   };
 
-  const stats = useMemo(
-    () => ({
-      total: tasks.length,
-      pending: tasks.filter((task) => !task.completed).length,
-      completed: tasks.filter((task) => task.completed).length,
-      subtasks: tasks.reduce((total, task) => total + task.subtasks.length, 0),
-    }),
-    [tasks]
-  );
+  const stats = useMemo(() => {
+    const total = tasks.length;
+    const pending = tasks.filter((task) => !task.completed).length;
+    const completed = tasks.filter((task) => task.completed).length;
+    const subtasks = tasks.reduce((total, task) => total + task.subtasks.length, 0);
+
+    const now = new Date();
+    
+    // Start of week (Monday)
+    const startOfWeek = new Date(now);
+    const dayOfWeek = now.getDay();
+    const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday = 0
+    startOfWeek.setDate(now.getDate() - diff);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    // Start of month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const weeklyCompleted = tasks.filter(
+      (t) => t.completed && t.completedAt && new Date(t.completedAt) >= startOfWeek
+    ).length;
+
+    const monthlyCompleted = tasks.filter(
+      (t) => t.completed && t.completedAt && new Date(t.completedAt) >= startOfMonth
+    ).length;
+
+    return {
+      total,
+      pending,
+      completed,
+      subtasks,
+      weeklyCompleted,
+      monthlyCompleted,
+    };
+  }, [tasks]);
 
   return {
     tasks,
     activities,
     stats,
+    isLoading,
+    isPending,
     addTask,
     deleteTask,
     toggleTask,

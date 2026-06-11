@@ -1,124 +1,94 @@
-# Task Manager
+# TaskFlow
 
-A modern, client-side task management application built with Next.js and React. Create, organize, and track your to-dos in the browser—with tasks persisted automatically via `localStorage`.
+TaskFlow is a professional, full-stack project and task management workspace built with Next.js, local PostgreSQL, Prisma ORM, and NextAuth.js.
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
-![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)
+## Core Features
 
-## Features
-
-- **Add tasks** — Enter a title in the text area and click **Add** (empty input is ignored).
-- **Complete / reopen** — Toggle completion with a checkbox; completed tasks show a strikethrough style.
-- **Edit tasks** — Inline editing with **Edit** and **Save** for quick title updates.
-- **Delete tasks** — Remove individual tasks with one click.
-- **Filter views** — Switch between **All**, **Completed**, and **Pending** to focus on what matters.
-- **Task counter** — See how many tasks match the current filter out of your total list.
-- **Persistent storage** — Tasks are saved to `localStorage` and restored when you return.
-- **Responsive UI** — Mobile-friendly layout with a clean card design, gradients, and smooth transitions.
-- **Empty state** — Helpful message when no tasks match the current filter.
+- **Professional Landing Page** — Sleek hero section showcasing capabilities, brand footer, and a togglable glassmorphic authorization panel.
+- **Secure Authentication** — Credentials-based (email and password) signup and sign-in flow powered by NextAuth.js and bcryptjs password hashing.
+- **Interactive Backlog & Board** — Toggle between a structured **List View** and a Kanban-style **Board View** (separating tasks into Pending and Completed columns).
+- **Productivity Analytics** — Real-time dashboard stats showing total tasks, pending count, total completions, and weekly/monthly task completion counts.
+- **Granular Subtasks** — Divide complex operations into small checkable subtasks with live progress bar trackers.
+- **Chronological Activity Timeline** — Chronological audit trail logging task creations, edits, subtask additions, and completions.
+- **Premium UI & Theme Controls** — Built with Tailwind CSS 4, supporting dark/light mode toggles, micro-animations, and animated loading skeletons.
 
 ## Tech Stack
 
-| Layer        | Technology                          |
-| ------------ | ----------------------------------- |
-| Framework    | [Next.js](https://nextjs.org/) 16   |
-| UI Library   | [React](https://react.dev/) 19      |
-| Language     | [TypeScript](https://www.typescriptlang.org/) |
-| Styling      | [Tailwind CSS](https://tailwindcss.com/) 4  |
-| Persistence  | Browser `localStorage`              |
+| Layer | Technology |
+|---|---|
+| **Framework** | [Next.js](https://nextjs.org/) 16 (App Router with Turbopack) |
+| **Frontend UI** | [React](https://react.dev/) 19 & [Tailwind CSS](https://tailwindcss.com/) 4 |
+| **Database ORM** | [Prisma](https://www.prisma.io/) 7.8.0 |
+| **Database** | [PostgreSQL](https://www.postgresql.org/) |
+| **Authentication** | [NextAuth.js](https://next-auth.js.org/) v4 |
 
-## Project Structure
-
-```
-todo_application/
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx      # Root layout and fonts
-│   │   ├── page.tsx        # Main page: state, filters, persistence
-│   │   └── globals.css     # Global styles and Tailwind imports
-│   ├── components/
-│   │   ├── TaskForm.tsx    # Task input and add button
-│   │   └── TaskList.tsx    # Task list with edit, toggle, delete
-│   ├── types/
-│   │   └── task.ts         # Task type definition
-│   └── utils/
-│       └── localStorage.ts # Task load/save helpers
-├── package.json
-└── README.md
-```
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18.18 or later (20+ recommended)
-- npm, yarn, pnpm, or bun
+- [Node.js](https://nodejs.org/) 18.18 or later
+- Local PostgreSQL instance (e.g. managed via pgAdmin 4)
 
-### Installation
+### Local Configuration
 
-```bash
-# Clone the repository (replace with your repo URL)
-git clone <repository-url>
-cd todo_application
-
-# Install dependencies
-npm install
+1. Create a `.env` file in the project root:
+```env
+DATABASE_URL="postgresql://<username>:<password>@localhost:5432/taskflow_db"
+NEXTAUTH_SECRET="your-32-character-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
 ```
 
-### Development
-
+2. Sync the Prisma schema to your PostgreSQL database:
 ```bash
+# Push schema definitions to database
+npx prisma db push
+
+# Generate client classes
+npx prisma generate
+```
+
+3. Install dependencies and start the development server:
+```bash
+# Install NPM packages
+npm install
+
+# Start Next.js hot-reloaded development environment
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to use the app.
+4. Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-### Production Build
+---
 
-```bash
-npm run build
-npm start
+## Project Structure
+
+```
+todo_application/
+├── prisma/
+│   └── schema.prisma        # Prisma DB models (User, Task, Subtask, Activity)
+├── src/
+│   ├── app/
+│   │   ├── (main)/          # Protected workspace routes (dashboard, tasks, settings)
+│   │   ├── api/auth/        # NextAuth API route endpoint
+│   │   ├── page.tsx         # Public landing page with auth card
+│   │   └── globals.css      # CSS imports and design tokens
+│   ├── components/
+│   │   ├── common/          # Shared elements (Logo, Loader, Skeletons)
+│   │   ├── dashboard/       # OverviewCards, StatsCard, ActivityTimeline
+│   │   └── tasks/           # TaskCard, TaskForm, TaskFilter
+│   ├── hooks/
+│   │   └── useTasks.ts      # Custom context hook connecting Server Actions
+│   └── lib/
+│       ├── actions/         # Next.js Server Actions (auth, tasks, stats, activities)
+│       └── db.ts            # Client singleton wrapper using PrismaPg adapter
 ```
 
-### Lint
+## Available Scripts
 
-```bash
-npm run lint
-```
+- `npm run dev` — Starts development server.
+- `npm run build` — Generates optimized production build.
+- `npm run start` — Runs compiled production build.
+- `npm run lint` — Checks codebase for code quality.
 
-## Usage
-
-1. Type a task in the input field and click **Add**.
-2. Check the box next to a task to mark it complete or pending.
-3. Use **Edit** / **Save** to change a task title.
-4. Click **Delete** to remove a task.
-5. Use **All**, **Completed**, or **Pending** to filter the list.
-
-Tasks are stored under the `tasks` key in `localStorage` and sync automatically whenever the list changes.
-
-## Data Model
-
-Each task is represented as:
-
-```ts
-type Task = {
-  id: number;       // Unique ID (timestamp-based)
-  title: string;    // Task description
-  completed: boolean;
-};
-```
-
-## Scripts
-
-| Command        | Description                    |
-| -------------- | ------------------------------ |
-| `npm run dev`  | Start development server       |
-| `npm run build`| Create optimized production build |
-| `npm start`    | Run production server          |
-| `npm run lint` | Run ESLint                     |
-
-## License
-
-This project is private and intended for personal or educational use unless otherwise specified.
