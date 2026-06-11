@@ -4,13 +4,14 @@ TaskFlow is a professional, full-stack project and task management workspace bui
 
 ## Core Features
 
-- **Professional Landing Page** — Sleek hero section showcasing capabilities, brand footer, and a togglable glassmorphic authorization panel.
-- **Secure Authentication** — Credentials-based (email and password) signup and sign-in flow powered by NextAuth.js and bcryptjs password hashing.
-- **Interactive Backlog & Board** — Toggle between a structured **List View** and a Kanban-style **Board View** (separating tasks into Pending and Completed columns).
-- **Productivity Analytics** — Real-time dashboard stats showing total tasks, pending count, total completions, and weekly/monthly task completion counts.
-- **Granular Subtasks** — Divide complex operations into small checkable subtasks with live progress bar trackers.
-- **Chronological Activity Timeline** — Chronological audit trail logging task creations, edits, subtask additions, and completions.
-- **Premium UI & Theme Controls** — Built with Tailwind CSS 4, supporting dark/light mode toggles, micro-animations, and animated loading skeletons.
+- **Secure Session Authentication** — User registration and login flow powered by NextAuth.js credentials provider, with custom bcryptjs password encryption and secure route middleware checks.
+- **Interactive Dashboard Analytics** — Instant statistics showing total tasks, pending count, and completed count, alongside weekly/monthly task completion totals and symmetrical h-380px grid elements.
+- **List & Kanban Board Toggle** — Instantly switch between a structured backlog list and a Kanban Board view displaying Pending and Completed columns.
+- **Auto-Saving Popup Details Editor** — Click on any task card to open an overlay editor. Edit fields (title, description, priority, due date) inline, with changes saved automatically to PostgreSQL on clicking outside the modal.
+- **Bidirectional Checklist Sync Logic** — Custom database actions matching subtasks with the parent task status. Completing all subtasks completes the task; reopening the task resets all subtasks to pending.
+- **Height-Bounded Checklists & Descriptions** — Compact task creation form with a detailed description textarea and nested checklist bounded to a `160px` container with custom scrollbar styling.
+- **Chronological Audit logs** — Detailed workspace timeline logs showing creation, edit, completion, subtask actions, and deletion history.
+- **Premium UI & Theme toggles** — Sleek responsive glassmorphic cards built with Tailwind CSS v4, supporting Light/Dark theme modes, micro-animations, animated loading skeletons, and custom brand logo tab favicons.
 
 ## Tech Stack
 

@@ -16,7 +16,13 @@ import {
   History,
   Layers,
   Check,
-  Sparkles
+  Sparkles,
+  ShieldCheck,
+  LayoutGrid,
+  FileText,
+  RefreshCw,
+  Moon,
+  ListTodo
 } from "lucide-react";
 import Logo from "@/components/common/Logo";
 import ThemeToggle from "@/components/theme/ThemeToggle";
@@ -128,10 +134,6 @@ export default function AuthPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Logo size="md" />
           <div className="flex items-center gap-4">
-            <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600 dark:text-slate-400">
-              <a href="#features" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Features</a>
-              <a href="#capabilities" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Capabilities</a>
-            </nav>
             <ThemeToggle />
           </div>
         </div>
@@ -174,8 +176,8 @@ export default function AuthPage() {
                     <Check size={12} className="stroke-[3]" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">Interactive Boards</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Jira-inspired card layouts</p>
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">List & Kanban Views</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Flexible backlog toggling</p>
                   </div>
                 </div>
                 
@@ -184,8 +186,8 @@ export default function AuthPage() {
                     <Check size={12} className="stroke-[3]" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">Deep Checklist System</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Granular subtask tracker</p>
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">Checklist Synchronization</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Task status sync logic</p>
                   </div>
                 </div>
 
@@ -194,8 +196,8 @@ export default function AuthPage() {
                     <Check size={12} className="stroke-[3]" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">Workspace Activity Trail</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Secure log histories for audits</p>
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">Chronological Logs</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Workspace activity timeline</p>
                   </div>
                 </div>
 
@@ -204,8 +206,8 @@ export default function AuthPage() {
                     <Check size={12} className="stroke-[3]" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">Productivity Statistics</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Weekly & monthly completions</p>
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">Live Workspace Metrics</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Weekly & monthly statistics</p>
                   </div>
                 </div>
               </div>
@@ -378,49 +380,109 @@ export default function AuthPage() {
             </p>
           </div>
 
-          <div id="capabilities" className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div id="capabilities" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             
             {/* Feature 1 */}
-            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
-                <Layers size={20} />
+            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 flex flex-col justify-between">
+              <div>
+                <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
+                  <Layers size={20} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Interactive Kanban</h3>
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Structured Kanban</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                Sort, assign, and organize task flow cards with priority ratings, target milestones, and responsive completed hooks.
+                Sort, toggle, and organize task flow cards between Pending and Completed board lists.
               </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
-                <CheckCircle2 size={20} />
+            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 flex flex-col justify-between">
+              <div>
+                <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
+                  <BarChart3 size={20} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Workspace Analytics</h3>
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Granular Checklist</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                Deconstruct major projects into distinct nested items. Track individual status and check progress bars dynamically.
+                Analyze total tasks, pending backlog counts, and weekly/monthly task completion charts.
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
-                <History size={20} />
+            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 flex flex-col justify-between">
+              <div>
+                <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
+                  <RefreshCw size={20} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Status Sync Logic</h3>
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Activity Trails</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                Keep a chronological history log of task states, project creations, and edits to audit your workflows.
+                Check off all subtasks to complete the parent task, or reopen the parent to reset all subtasks.
               </p>
             </div>
 
             {/* Feature 4 */}
-            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
-                <BarChart3 size={20} />
+            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 flex flex-col justify-between">
+              <div>
+                <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
+                  <FileText size={20} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Auto-Save Editor</h3>
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Visual Metrics</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                Track weekly and monthly completion counts to stay motivated, analyze progress patterns, and optimize output.
+                Click task cards to open the details modal. Edits to fields are auto-saved on closing.
+              </p>
+            </div>
+
+            {/* Feature 5 */}
+            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 flex flex-col justify-between">
+              <div>
+                <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
+                  <ShieldCheck size={20} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Secure Authentication</h3>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                Credentials signup & sign-in powered by NextAuth with route protection middleware checks.
+              </p>
+            </div>
+
+            {/* Feature 6 */}
+            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 flex flex-col justify-between">
+              <div>
+                <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
+                  <ListTodo size={20} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Bounded Checklists</h3>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                Add multiple subtasks inside creation forms; layout height stays bounded with a custom scrollbar.
+              </p>
+            </div>
+
+            {/* Feature 7 */}
+            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 flex flex-col justify-between">
+              <div>
+                <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
+                  <History size={20} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Chronological Logs</h3>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                Track full audit histories logging creation, toggles, completions, and task deletions.
+              </p>
+            </div>
+
+            {/* Feature 8 */}
+            <div className="relative rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 flex flex-col justify-between">
+              <div>
+                <div className="flex size-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 mb-4">
+                  <Moon size={20} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Premium UI & Theme</h3>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                Sleek glassmorphism, responsive styles, micro-animations, skeletons, and Dark/Light toggles.
               </p>
             </div>
 

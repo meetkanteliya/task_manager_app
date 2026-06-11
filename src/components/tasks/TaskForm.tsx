@@ -26,6 +26,7 @@ interface DraftSubtask {
 export default function TaskForm({ onCreate, onCancel }: TaskFormProps) {
   const uid = useId();
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [dueDate, setDueDate] = useState("");
   const [subtasks, setSubtasks] = useState<DraftSubtask[]>([]);
@@ -45,6 +46,7 @@ export default function TaskForm({ onCreate, onCancel }: TaskFormProps) {
       : subtasks;
 
     onCreate(title.trim(), priority, {
+      description: description.trim() || undefined,
       dueDate: dueDate || undefined,
       subtasks: finalSubtasks.filter((s) => s.title.trim()),
     });
@@ -93,6 +95,25 @@ export default function TaskForm({ onCreate, onCancel }: TaskFormProps) {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Write a concise task title"
             className="mt-2 w-full rounded-xl border border-slate-200 bg-[#F8FAFC] px-4 py-3 text-sm font-medium text-slate-900 outline-none ring-[#2563EB]/20 placeholder:text-slate-400 focus:border-[#2563EB] focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+          />
+        </div>
+
+        {/* Task Description */}
+        <div>
+          <label
+            htmlFor={`${uid}-description`}
+            className="text-sm font-medium text-slate-800 dark:text-slate-200"
+          >
+            Description{" "}
+            <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
+          </label>
+          <textarea
+            id={`${uid}-description`}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Add detailed task description..."
+            rows={4}
+            className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-[#F8FAFC] px-4 py-3 text-sm font-medium text-slate-900 outline-none ring-[#2563EB]/20 placeholder:text-slate-400 focus:border-[#2563EB] focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
           />
         </div>
 
@@ -145,31 +166,33 @@ export default function TaskForm({ onCreate, onCancel }: TaskFormProps) {
 
           {/* Existing draft subtasks */}
           {subtasks.length > 0 && (
-            <ul className="mt-3 space-y-2">
-              {subtasks.map((subtask) => (
-                <li
-                  key={subtask.id}
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
-                >
-                  {/* editable inline */}
-                  <input
-                    type="text"
-                    value={subtask.title}
-                    onChange={(e) => updateSubtask(subtask.id, e.target.value)}
-                    className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 dark:text-slate-100"
-                    aria-label={`Edit subtask: ${subtask.title}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeSubtask(subtask.id)}
-                    className="shrink-0 text-slate-400 transition-colors hover:text-red-500 dark:hover:text-red-400"
-                    aria-label={`Remove subtask: ${subtask.title}`}
+            <div className="mt-3 max-h-[160px] overflow-y-auto pr-1 scrollbar-thin">
+              <ul className="space-y-2">
+                {subtasks.map((subtask) => (
+                  <li
+                    key={subtask.id}
+                    className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-950"
                   >
-                    <X size={15} />
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    {/* editable inline */}
+                    <input
+                      type="text"
+                      value={subtask.title}
+                      onChange={(e) => updateSubtask(subtask.id, e.target.value)}
+                      className="min-w-0 flex-1 bg-transparent text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 dark:text-slate-100"
+                      aria-label={`Edit subtask: ${subtask.title}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSubtask(subtask.id)}
+                      className="shrink-0 text-slate-400 transition-colors hover:text-red-500 dark:hover:text-red-400"
+                      aria-label={`Remove subtask: ${subtask.title}`}
+                    >
+                      <X size={15} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
 
           {/* Add new subtask row */}

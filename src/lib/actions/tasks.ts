@@ -82,6 +82,7 @@ export async function updateTask(
   // Verify ownership
   const existing = await db.task.findFirst({
     where: { id: taskId, userId: user.id },
+    include: { subtasks: true },
   });
 
   if (!existing) {
@@ -99,6 +100,14 @@ export async function updateTask(
   if (data.completed !== undefined) {
     updateData.completed = data.completed;
     updateData.completedAt = data.completed ? new Date() : null;
+
+    // Sync subtasks completion status
+    if (existing.subtasks.length > 0) {
+      await db.subtask.updateMany({
+        where: { taskId },
+        data: { completed: data.completed },
+      });
+    }
   }
 
   const task = await db.task.update({
@@ -178,6 +187,14 @@ export async function createSubtask(taskId: string, title: string) {
     },
   });
 
+  // Since a new subtask is pending, the main task can no longer be completed
+  if (task.completed) {
+    await db.task.update({
+      where: { id: taskId },
+      data: { completed: false, completedAt: null },
+    });
+  }
+
   await db.activity.create({
     data: {
       type: "subtask_added",
@@ -210,6 +227,40 @@ export async function toggleSubtask(subtaskId: string) {
     data: { completed: !subtask.completed },
   });
 
+  // Calculate task completion based on all subtasks status
+  const allSubtasks = await db.subtask.findMany({
+    where: { taskId: subtask.taskId },
+  });
+
+  const allCompleted = allSubtasks.every((s) => s.completed);
+  const taskWasCompleted = subtask.task.completed;
+
+  if (allCompleted && !taskWasCompleted) {
+    await db.task.update({
+      where: { id: subtask.taskId },
+      data: { completed: true, completedAt: new Date() },
+    });
+    await db.activity.create({
+      data: {
+        type: "task_completed",
+        message: `Completed task "${subtask.task.title}"`,
+        userId: user.id,
+      },
+    });
+  } else if (!allCompleted && taskWasCompleted) {
+    await db.task.update({
+      where: { id: subtask.taskId },
+      data: { completed: false, completedAt: null },
+    });
+    await db.activity.create({
+      data: {
+        type: "task_created",
+        message: `Reopened task "${subtask.task.title}"`,
+        userId: user.id,
+      },
+    });
+  }
+
   if (updated.completed) {
     await db.activity.create({
       data: {
@@ -241,6 +292,42 @@ export async function deleteSubtask(subtaskId: string) {
   await db.subtask.delete({
     where: { id: subtaskId },
   });
+
+  // Check remaining subtasks of this task
+  const remainingSubtasks = await db.subtask.findMany({
+    where: { taskId: subtask.taskId },
+  });
+
+  if (remainingSubtasks.length > 0) {
+    const allCompleted = remainingSubtasks.every((s) => s.completed);
+    const taskWasCompleted = subtask.task.completed;
+
+    if (allCompleted && !taskWasCompleted) {
+      await db.task.update({
+        where: { id: subtask.taskId },
+        data: { completed: true, completedAt: new Date() },
+      });
+      await db.activity.create({
+        data: {
+          type: "task_completed",
+          message: `Completed task "${subtask.task.title}"`,
+          userId: user.id,
+        },
+      });
+    } else if (!allCompleted && taskWasCompleted) {
+      await db.task.update({
+        where: { id: subtask.taskId },
+        data: { completed: false, completedAt: null },
+      });
+      await db.activity.create({
+        data: {
+          type: "task_created",
+          message: `Reopened task "${subtask.task.title}"`,
+          userId: user.id,
+        },
+      });
+    }
+  }
 
   revalidatePath("/dashboard");
   revalidatePath("/tasks");

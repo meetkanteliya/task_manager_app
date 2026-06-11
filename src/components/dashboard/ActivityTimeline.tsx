@@ -31,7 +31,7 @@ export default function ActivityTimeline() {
         </h2>
       </div>
 
-      <div className="space-y-1 p-4">
+      <div className="h-[380px] overflow-y-auto space-y-1 p-4">
         {recentActivities.length === 0 ? (
           <p className="rounded-xl bg-slate-50 p-4 text-sm font-medium text-slate-600 dark:bg-slate-950 dark:text-slate-400">
             No activity recorded yet.

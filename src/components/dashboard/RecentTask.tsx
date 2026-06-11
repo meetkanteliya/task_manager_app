@@ -15,7 +15,7 @@ export default function RecentTask({ tasks }: RecentTaskProps) {
         </h2>
       </div>
 
-      <div className="divide-y divide-slate-100 dark:divide-slate-800">
+      <div className="h-[380px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
         {tasks.map((task) => (
           <Link
             key={task.id}

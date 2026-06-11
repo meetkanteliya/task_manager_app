@@ -163,7 +163,7 @@ export function useTasks() {
 
   const editTask = (
     id: string,
-    updates: { title?: string; description?: string; priority?: TaskPriority; dueDate?: string }
+    updates: { title?: string; description?: string; priority?: TaskPriority; dueDate?: string | null }
   ) => {
     startTransition(async () => {
       try {

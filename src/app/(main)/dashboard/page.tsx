@@ -6,7 +6,7 @@ import RecentTask from "@/components/dashboard/RecentTask";
 import EmptyState from "@/components/common/EmptyState";
 import ActivityTimeline from "@/components/dashboard/ActivityTimeline";
 import { useTasks } from "@/hooks/useTasks";
-import { StatsSkeleton, TasksSkeleton, TimelineSkeleton } from "@/components/common/Skeleton";
+import { StatsSkeleton, RecentTasksSkeleton, TimelineSkeleton } from "@/components/common/Skeleton";
 
 export default function DashboardPage() {
   const { tasks, stats, isLoading } = useTasks();
@@ -39,7 +39,7 @@ export default function DashboardPage() {
 
       <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
         {isLoading ? (
-          <TasksSkeleton count={2} />
+          <RecentTasksSkeleton />
         ) : tasks.length === 0 ? (
           <EmptyState
             title="Create your first task"
