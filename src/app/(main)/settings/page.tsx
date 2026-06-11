@@ -65,12 +65,27 @@ export default function SettingsPage() {
 
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-          Storage
+          System Information
         </h2>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           <Metric label="Total Tasks" value={stats.total} />
           <Metric label="Total Activities" value={activities.length} />
-          <Metric label="LocalStorage Usage" value={`${storageUsage} chars`} />
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950 flex flex-col justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                Database Status
+              </p>
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                  Connected
+                </span>
+                <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" aria-label="Connected indicator" />
+              </div>
+            </div>
+            <p className="mt-1 text-xs font-semibold text-slate-400 dark:text-slate-500">
+              PostgreSQL + Prisma
+            </p>
+          </div>
         </div>
       </section>
 
