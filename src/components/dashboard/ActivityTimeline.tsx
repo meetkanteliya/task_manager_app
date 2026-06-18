@@ -5,6 +5,7 @@ import {
   CirclePlus,
   GitBranchPlus,
   ListChecks,
+  RotateCcw,
   Trash2,
 } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
@@ -14,6 +15,7 @@ import { formatDate } from "@/utils/dateFormatter";
 const icons: Record<ActivityType, typeof CirclePlus> = {
   task_created: CirclePlus,
   task_completed: CheckCircle2,
+  task_reopened: RotateCcw,
   task_deleted: Trash2,
   subtask_added: GitBranchPlus,
   subtask_completed: ListChecks,

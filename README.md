@@ -1,65 +1,42 @@
 # TaskFlow
 
-TaskFlow is a professional, full-stack project and task management workspace built with Next.js, local PostgreSQL, Prisma ORM, and NextAuth.js.
-
-## Core Features
-
-- **Secure Session Authentication** — User registration and login flow powered by NextAuth.js credentials provider, with custom bcryptjs password encryption and secure route middleware checks.
-- **Interactive Dashboard Analytics** — Instant statistics showing total tasks, pending count, and completed count, alongside weekly/monthly task completion totals and symmetrical h-380px grid elements.
-- **List & Kanban Board Toggle** — Instantly switch between a structured backlog list and a Kanban Board view displaying Pending and Completed columns.
-- **Auto-Saving Popup Details Editor** — Click on any task card to open an overlay editor. Edit fields (title, description, priority, due date) inline, with changes saved automatically to PostgreSQL on clicking outside the modal.
-- **Bidirectional Checklist Sync Logic** — Custom database actions matching subtasks with the parent task status. Completing all subtasks completes the task; reopening the task resets all subtasks to pending.
-- **Height-Bounded Checklists & Descriptions** — Compact task creation form with a detailed description textarea and nested checklist bounded to a `160px` container with custom scrollbar styling.
-- **Chronological Audit logs** — Detailed workspace timeline logs showing creation, edit, completion, subtask actions, and deletion history.
-- **Premium UI & Theme toggles** — Sleek responsive glassmorphic cards built with Tailwind CSS v4, supporting Light/Dark theme modes, micro-animations, animated loading skeletons, and custom brand logo tab favicons.
+A professional, full-stack task management and productivity workspace built with Next.js App Router, Prisma, and PostgreSQL.
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Framework** | [Next.js](https://nextjs.org/) 16 (App Router with Turbopack) |
-| **Frontend UI** | [React](https://react.dev/) 19 & [Tailwind CSS](https://tailwindcss.com/) 4 |
-| **Database ORM** | [Prisma](https://www.prisma.io/) 7.8.0 |
-| **Database** | [PostgreSQL](https://www.postgresql.org/) |
-| **Authentication** | [NextAuth.js](https://next-auth.js.org/) v4 |
+*   **Framework:** Next.js (v16.2.6, App Router)
+*   **Library:** React (v19.2.4)
+*   **Language:** TypeScript (v5)
+*   **Styling:** Tailwind CSS (v4)
+*   **Database ORM:** Prisma (v7.8.0)
+*   **Database:** PostgreSQL
+*   **Authentication:** NextAuth.js (v4.24.14 with JWT & Credentials Provider)
+*   **Data Validation:** Zod (v4.4.3)
+*   **Toast Notifications:** Sonner (v2.0.7)
 
 ---
 
-## Getting Started
+## Features
 
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) 18.18 or later
-- Local PostgreSQL instance (e.g. managed via pgAdmin 4)
-
-### Local Configuration
-
-1. Create a `.env` file in the project root:
-```env
-DATABASE_URL="postgresql://<username>:<password>@localhost:5432/taskflow_db"
-NEXTAUTH_SECRET="your-32-character-secret-key"
-NEXTAUTH_URL="http://localhost:3000"
-```
-
-2. Sync the Prisma schema to your PostgreSQL database:
-```bash
-# Push schema definitions to database
-npx prisma db push
-
-# Generate client classes
-npx prisma generate
-```
-
-3. Install dependencies and start the development server:
-```bash
-# Install NPM packages
-npm install
-
-# Start Next.js hot-reloaded development environment
-npm run dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) to view the application.
+*   **Secure Authentication & Route Protection:**
+    *   Credentials-based user registration and login with safe password hashing via `bcryptjs`.
+    *   Next.js route middleware protection via [middleware.ts](file:///c:/Users/om/Desktop/todo_application/src/middleware.ts) protecting the dashboard, task, and setting panels from unauthorized access.
+*   **Advanced Task & Subtask Management:**
+    *   Create, view, update, and delete tasks with priorities (`low`, `medium`, `high`), description, and optional due dates.
+    *   Nested checklist subtasks support with transactional database creation.
+    *   *Auto-completion sync:* Completing all subtasks automatically resolves the parent task. Conversely, adding a new subtask or reopening an existing checklist item transitions the parent task back to a pending state.
+*   **Aggregated Analytics Dashboard:**
+    *   Real-time overview analytics counting total, pending, completed, weekly completed, monthly completed, high priority pending, and overdue tasks.
+    *   Interactive completion rate progress indicator using SVG radial displays.
+*   **Persistent Activity logs:**
+    *   Chronological audit log tracking application-wide events like task creation, updates, toggles, deletions, and checklist changes.
+    *   Real-time Activity Timeline viewable inside the dashboard.
+*   **Settings Panel & Purge Commands:**
+    *   Safe interactive triggers to purge all activities or wipe the entire task database using secure server action transactions.
+*   **Modern Responsive UX:**
+    *   Custom dark/light mode toggling utilizing `next-themes`.
+    *   Inline modal-based detail views with auto-save functionality.
+    *   Consistent toast notifications for all backend mutations.
 
 ---
 
@@ -68,28 +45,110 @@ npm run dev
 ```
 todo_application/
 ├── prisma/
-│   └── schema.prisma        # Prisma DB models (User, Task, Subtask, Activity)
+│   ├── migrations/          # Database schema migrations
+│   └── schema.prisma        # Database schema definitions (User, Task, Subtask, Activity)
 ├── src/
 │   ├── app/
-│   │   ├── (main)/          # Protected workspace routes (dashboard, tasks, settings)
-│   │   ├── api/auth/        # NextAuth API route endpoint
-│   │   ├── page.tsx         # Public landing page with auth card
-│   │   └── globals.css      # CSS imports and design tokens
+│   │   ├── (main)/          # Authenticated routes
+│   │   │   ├── dashboard/   # Dashboard page with statistics & activity log
+│   │   │   ├── settings/    # Account deletion & clear actions
+│   │   │   ├── tasks/       # Task manager board & detail modals
+│   │   │   ├── error.tsx    # App shell error boundary
+│   │   │   └── layout.tsx   # Sidebar app navigation layout
+│   │   ├── api/
+│   │   │   └── auth/        # NextAuth API route setup
+│   │   ├── globals.css      # Core Tailwind CSS imports & theme configurations
+│   │   ├── layout.tsx       # Root document layout with providers (Theme, Auth, Toast)
+│   │   └── page.tsx         # Welcome screen, signup, and login forms
 │   ├── components/
-│   │   ├── common/          # Shared elements (Logo, Loader, Skeletons)
-│   │   ├── dashboard/       # OverviewCards, StatsCard, ActivityTimeline
-│   │   └── tasks/           # TaskCard, TaskForm, TaskFilter
+│   │   ├── dashboard/       # ActivityTimeline, OverviewCards, StatsCard, RecentTask
+│   │   ├── tasks/           # TaskCard, TaskFilter, TaskForm
+│   │   ├── ui/              # Interactive primitives (dialog, dropdown, tooltip, select)
+│   │   ├── app-header.tsx   # Top layout bar with user menu
+│   │   ├── app-shell.tsx    # Main interface structure handler
+│   │   └── app-sidebar.tsx  # Sidebar navigation components
 │   ├── hooks/
-│   │   └── useTasks.ts      # Custom context hook connecting Server Actions
-│   └── lib/
-│       ├── actions/         # Next.js Server Actions (auth, tasks, stats, activities)
-│       └── db.ts            # Client singleton wrapper using PrismaPg adapter
+│   │   ├── useDebounce.ts   # Event callback debouncing
+│   │   ├── useSidebarState.ts# Sidebar open/close controls
+│   │   └── useTasks.ts      # Custom task state management using Next.js Server Actions
+│   ├── lib/
+│   │   ├── actions/         # Server-side operations (auth, tasks, stats, activities)
+│   │   ├── validations/     # Zod input validation schemas (auth.ts, task.ts)
+│   │   ├── auth.ts          # NextAuth callbacks & credentials provider logic
+│   │   ├── db.ts            # Prisma client adapter setup
+│   │   └── session.ts       # Server session helper utilities
+│   ├── middleware.ts        # NextAuth route protection middleware
+│   └── types/               # TypeScript declarations & interfaces
 ```
 
-## Available Scripts
+---
 
-- `npm run dev` — Starts development server.
-- `npm run build` — Generates optimized production build.
-- `npm run start` — Runs compiled production build.
-- `npm run lint` — Checks codebase for code quality.
+## Getting Started
 
+Follow these steps to run TaskFlow locally.
+
+### Prerequisites
+
+*   [Node.js](https://nodejs.org/) v18.18 or later
+*   Running [PostgreSQL](https://www.postgresql.org/) database instance
+
+### 1. Install Dependencies
+
+Clone the repository and install all required packages:
+
+```bash
+npm install
+```
+
+### 2. Setup Environment Variables
+
+Create a `.env` file in the root directory and define the required variables (see the table below):
+
+```bash
+# Example .env configuration
+DATABASE_URL="postgresql://postgres:password@localhost:5432/taskflow_db"
+NEXTAUTH_SECRET="your-32-character-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+### 3. Run Prisma Migrations
+
+Sync the database schema with your local PostgreSQL database:
+
+```bash
+npx prisma migrate dev
+```
+
+This will run outstanding migrations and generate the Prisma client interface target inside `src/generated/prisma`.
+
+### 4. Run the Development Server
+
+Start the local server with hot reloading enabled:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) inside your web browser to explore the dashboard.
+
+---
+
+## Environment Variables
+
+The application relies on the following configurations:
+
+| Variable | Description | Example Value |
+| :--- | :--- | :--- |
+| `DATABASE_URL` | PostgreSQL connection string including credentials, host, and database name. | `postgresql://postgres:password@localhost:5432/taskflow_db` |
+| `NEXTAUTH_SECRET` | A secure, random token used to sign NextAuth tokens and session cookies. | `f39b6e3f22c549618c7e9dbab17cbe3d3170701c40212abecfdf...` |
+| `NEXTAUTH_URL` | The base URL of the site, used to resolve redirection logic during login. | `http://localhost:3000` |
+
+---
+
+## Screenshots
+
+*Screenshots illustrating the TaskFlow workspace interface will be placed here.*
+
+| Dashboard Page | Tasks Board |
+| :---: | :---: |
+| *[Screenshot Placeholder]* | *[Screenshot Placeholder]* |

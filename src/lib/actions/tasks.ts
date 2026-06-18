@@ -3,6 +3,12 @@
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/session";
 import { revalidatePath } from "next/cache";
+import {
+  createTaskSchema,
+  createTaskWithSubtasksSchema,
+  updateTaskSchema,
+  subtaskTitleSchema,
+} from "@/lib/validations/task";
 
 // ---------- Fetch Tasks ----------
 
@@ -31,19 +37,20 @@ export async function getTaskById(taskId: string) {
 
 // ---------- Create Task ----------
 
-export async function createTask(data: {
+export async function createTask(rawData: {
   title: string;
   description?: string;
   priority?: string;
   dueDate?: string;
 }) {
+  const data = createTaskSchema.parse(rawData);
   const user = await requireAuth();
 
   const task = await db.task.create({
     data: {
       title: data.title,
       description: data.description || null,
-      priority: data.priority || "medium",
+      priority: data.priority,
       dueDate: data.dueDate ? new Date(data.dueDate) : null,
       userId: user.id,
     },
@@ -69,7 +76,7 @@ export async function createTask(data: {
 
 export async function updateTask(
   taskId: string,
-  data: {
+  rawData: {
     title?: string;
     description?: string;
     priority?: string;
@@ -77,6 +84,7 @@ export async function updateTask(
     completed?: boolean;
   }
 ) {
+  const data = updateTaskSchema.parse(rawData);
   const user = await requireAuth();
 
   // Verify ownership
@@ -120,7 +128,7 @@ export async function updateTask(
   if (data.completed !== undefined && data.completed !== existing.completed) {
     await db.activity.create({
       data: {
-        type: data.completed ? "task_completed" : "task_created",
+        type: data.completed ? "task_completed" : "task_reopened",
         message: data.completed
           ? `Completed task "${task.title}"`
           : `Reopened task "${task.title}"`,
@@ -168,7 +176,8 @@ export async function deleteTask(taskId: string) {
 
 // ---------- Subtask Operations ----------
 
-export async function createSubtask(taskId: string, title: string) {
+export async function createSubtask(taskId: string, rawTitle: string) {
+  const title = subtaskTitleSchema.parse(rawTitle);
   const user = await requireAuth();
 
   // Verify task ownership
@@ -254,7 +263,7 @@ export async function toggleSubtask(subtaskId: string) {
     });
     await db.activity.create({
       data: {
-        type: "task_created",
+        type: "task_reopened",
         message: `Reopened task "${subtask.task.title}"`,
         userId: user.id,
       },
@@ -321,7 +330,7 @@ export async function deleteSubtask(subtaskId: string) {
       });
       await db.activity.create({
         data: {
-          type: "task_created",
+          type: "task_reopened",
           message: `Reopened task "${subtask.task.title}"`,
           userId: user.id,
         },
@@ -333,4 +342,79 @@ export async function deleteSubtask(subtaskId: string) {
   revalidatePath("/tasks");
 
   return { success: true };
+}
+
+// ---------- Batch Operations ----------
+
+export async function createTaskWithSubtasks(rawData: {
+  title: string;
+  description?: string;
+  priority?: string;
+  dueDate?: string;
+  subtasks?: { title: string }[];
+}) {
+  const data = createTaskWithSubtasksSchema.parse(rawData);
+  const user = await requireAuth();
+
+  const result = await db.$transaction(async (tx) => {
+    const task = await tx.task.create({
+      data: {
+        title: data.title,
+        description: data.description || null,
+        priority: data.priority,
+        dueDate: data.dueDate ? new Date(data.dueDate) : null,
+        userId: user.id,
+      },
+    });
+
+    if (data.subtasks.length > 0) {
+      await tx.subtask.createMany({
+        data: data.subtasks.map((s) => ({
+          title: s.title,
+          taskId: task.id,
+        })),
+      });
+    }
+
+    await tx.activity.create({
+      data: {
+        type: "task_created",
+        message: `Created task "${data.title}"`,
+        userId: user.id,
+      },
+    });
+
+    return tx.task.findUniqueOrThrow({
+      where: { id: task.id },
+      include: { subtasks: true },
+    });
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/tasks");
+
+  return result;
+}
+
+export async function deleteAllTasks() {
+  const user = await requireAuth();
+
+  const count = await db.task.count({ where: { userId: user.id } });
+
+  await db.task.deleteMany({
+    where: { userId: user.id },
+  });
+
+  await db.activity.create({
+    data: {
+      type: "task_deleted",
+      message: `Deleted all tasks (${count} tasks)`,
+      userId: user.id,
+    },
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/tasks");
+
+  return { success: true, deletedCount: count };
 }

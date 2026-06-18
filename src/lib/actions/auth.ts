@@ -2,6 +2,7 @@
 
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
+import { signUpSchema } from "@/lib/validations/auth";
 
 interface SignUpResult {
   success: boolean;
@@ -14,28 +15,26 @@ export async function signUp(
   password: string
 ): Promise<SignUpResult> {
   try {
+    // Validate input
+    const validated = signUpSchema.parse({ name, email, password });
+
     // Check if user already exists
     const existingUser = await db.user.findUnique({
-      where: { email },
+      where: { email: validated.email },
     });
 
     if (existingUser) {
       return { success: false, error: "An account with this email already exists" };
     }
 
-    // Validate password length
-    if (password.length < 6) {
-      return { success: false, error: "Password must be at least 6 characters" };
-    }
-
     // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(validated.password, 12);
 
     // Create the user
     await db.user.create({
       data: {
-        name,
-        email,
+        name: validated.name,
+        email: validated.email,
         password: hashedPassword,
       },
     });

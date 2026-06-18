@@ -10,7 +10,6 @@ import {
   Settings,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
-import { useTasks } from "@/hooks/useTasks";
 import Logo from "@/components/common/Logo";
 
 const navigation = [
@@ -71,7 +70,6 @@ function UserProfile() {
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { stats } = useTasks();
 
   const getIsActive = (href: string) => pathname === href;
 
@@ -113,27 +111,6 @@ export default function Sidebar() {
         <div className="mt-auto space-y-4">
           {/* User profile */}
           <UserProfile />
-
-          <div className="rounded-2xl border border-slate-700/80 bg-slate-800/60 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Task summary
-            </p>
-
-            <div className="mt-4 space-y-3 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-300">Total Tasks</span>
-                <span className="font-bold">{stats.total}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-300">Pending Tasks</span>
-                <span className="font-bold text-[#EAB308]">{stats.pending}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-300">Completed Tasks</span>
-                <span className="font-bold text-[#22C55E]">{stats.completed}</span>
-              </div>
-            </div>
-          </div>
         </div>
       </aside>
 

@@ -28,6 +28,7 @@ export type TaskFilter = "all" | "pending" | "completed";
 export type ActivityType =
   | "task_created"
   | "task_completed"
+  | "task_reopened"
   | "task_deleted"
   | "subtask_added"
   | "subtask_completed";

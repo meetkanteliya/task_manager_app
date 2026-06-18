@@ -3,9 +3,9 @@ import StatsCard from "./StatsCard";
 
 type OverviewCardsProps = {
   stats: {
-    total: number;
-    pending: number;
-    completed: number;
+    totalTasks: number;
+    pendingTasks: number;
+    completedTasks: number;
     weeklyCompleted: number;
     monthlyCompleted: number;
   };
@@ -16,19 +16,19 @@ export default function OverviewCards({ stats }: OverviewCardsProps) {
     <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       <StatsCard
         title="Total Tasks"
-        value={stats.total}
+        value={stats.totalTasks}
         icon={ListTodo}
         tone="blue"
       />
       <StatsCard
         title="Pending Tasks"
-        value={stats.pending}
+        value={stats.pendingTasks}
         icon={CircleDot}
         tone="yellow"
       />
       <StatsCard
         title="Completed Tasks"
-        value={stats.completed}
+        value={stats.completedTasks}
         icon={CheckCircle2}
         tone="green"
       />

@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import { Task, Subtask, Activity, TaskPriority } from "@/types/task";
+import { useCallback, useEffect, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { Task, Activity, TaskPriority } from "@/types/task";
 import {
   getTasks as fetchTasks,
-  createTask as serverCreateTask,
+  createTaskWithSubtasks as serverCreateTaskWithSubtasks,
   updateTask as serverUpdateTask,
   deleteTask as serverDeleteTask,
+  deleteAllTasks as serverDeleteAllTasks,
   createSubtask as serverCreateSubtask,
   toggleSubtask as serverToggleSubtask,
   deleteSubtask as serverDeleteSubtask,
@@ -15,6 +17,7 @@ import {
   getActivities as fetchActivities,
   clearActivities as serverClearActivities,
 } from "@/lib/actions/activities";
+import { getUserTaskStats } from "@/lib/actions/stats";
 
 // Map DB task shape to our frontend Task type
 function mapDbTask(dbTask: Awaited<ReturnType<typeof fetchTasks>>[number]): Task {
@@ -44,22 +47,49 @@ function mapDbActivity(dbActivity: Awaited<ReturnType<typeof fetchActivities>>[n
   };
 }
 
+// Stats type from the server action
+interface TaskStats {
+  totalTasks: number;
+  completedTasks: number;
+  pendingTasks: number;
+  weeklyCompleted: number;
+  monthlyCompleted: number;
+  highPriorityPending: number;
+  overdueTasks: number;
+  completionRate: number;
+}
+
+const defaultStats: TaskStats = {
+  totalTasks: 0,
+  completedTasks: 0,
+  pendingTasks: 0,
+  weeklyCompleted: 0,
+  monthlyCompleted: 0,
+  highPriorityPending: 0,
+  overdueTasks: 0,
+  completionRate: 0,
+};
+
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [stats, setStats] = useState<TaskStats>(defaultStats);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
 
   const loadData = useCallback(async () => {
     try {
-      const [dbTasks, dbActivities] = await Promise.all([
+      const [dbTasks, dbActivities, dbStats] = await Promise.all([
         fetchTasks(),
         fetchActivities(),
+        getUserTaskStats(),
       ]);
       setTasks(dbTasks.map(mapDbTask));
       setActivities(dbActivities.map(mapDbActivity));
+      setStats(dbStats);
     } catch (error) {
       console.error("Failed to load data:", error);
+      toast.error("Failed to load data");
     } finally {
       setIsLoading(false);
     }
@@ -80,25 +110,19 @@ export function useTasks() {
   ) => {
     startTransition(async () => {
       try {
-        const newTask = await serverCreateTask({
+        await serverCreateTaskWithSubtasks({
           title,
           priority,
           description: options?.description,
           dueDate: options?.dueDate,
+          subtasks: options?.subtasks?.filter((s) => s.title.trim()) ?? [],
         });
 
-        // Create subtasks if provided
-        if (options?.subtasks) {
-          for (const subtask of options.subtasks) {
-            if (subtask.title.trim()) {
-              await serverCreateSubtask(newTask.id, subtask.title.trim());
-            }
-          }
-        }
-
         await loadData();
+        toast.success("Task created");
       } catch (error) {
         console.error("Failed to add task:", error);
+        toast.error("Failed to create task");
       }
     });
   };
@@ -108,8 +132,10 @@ export function useTasks() {
       try {
         await serverDeleteTask(id);
         await loadData();
+        toast.success("Task deleted");
       } catch (error) {
         console.error("Failed to delete task:", error);
+        toast.error("Failed to delete task");
       }
     });
   };
@@ -124,6 +150,7 @@ export function useTasks() {
         await loadData();
       } catch (error) {
         console.error("Failed to toggle task:", error);
+        toast.error("Failed to update task");
       }
     });
   };
@@ -135,6 +162,7 @@ export function useTasks() {
         await loadData();
       } catch (error) {
         console.error("Failed to add subtask:", error);
+        toast.error("Failed to add subtask");
       }
     });
   };
@@ -146,6 +174,7 @@ export function useTasks() {
         await loadData();
       } catch (error) {
         console.error("Failed to toggle subtask:", error);
+        toast.error("Failed to update subtask");
       }
     });
   };
@@ -157,6 +186,7 @@ export function useTasks() {
         await loadData();
       } catch (error) {
         console.error("Failed to delete subtask:", error);
+        toast.error("Failed to delete subtask");
       }
     });
   };
@@ -169,8 +199,10 @@ export function useTasks() {
       try {
         await serverUpdateTask(id, updates);
         await loadData();
+        toast.success("Task updated");
       } catch (error) {
         console.error("Failed to edit task:", error);
+        toast.error("Failed to update task");
       }
     });
   };
@@ -178,12 +210,12 @@ export function useTasks() {
   const removeAllTasks = () => {
     startTransition(async () => {
       try {
-        for (const task of tasks) {
-          await serverDeleteTask(task.id);
-        }
+        await serverDeleteAllTasks();
         await loadData();
+        toast.success("All tasks deleted");
       } catch (error) {
         console.error("Failed to remove all tasks:", error);
+        toast.error("Failed to delete tasks");
       }
     });
   };
@@ -193,48 +225,13 @@ export function useTasks() {
       try {
         await serverClearActivities();
         await loadData();
+        toast.success("Activity log cleared");
       } catch (error) {
         console.error("Failed to clear activities:", error);
+        toast.error("Failed to clear activities");
       }
     });
   };
-
-  const stats = useMemo(() => {
-    const total = tasks.length;
-    const pending = tasks.filter((task) => !task.completed).length;
-    const completed = tasks.filter((task) => task.completed).length;
-    const subtasks = tasks.reduce((total, task) => total + task.subtasks.length, 0);
-
-    const now = new Date();
-    
-    // Start of week (Monday)
-    const startOfWeek = new Date(now);
-    const dayOfWeek = now.getDay();
-    const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday = 0
-    startOfWeek.setDate(now.getDate() - diff);
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    // Start of month
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const weeklyCompleted = tasks.filter(
-      (t) => t.completed && t.completedAt && new Date(t.completedAt) >= startOfWeek
-    ).length;
-
-    const monthlyCompleted = tasks.filter(
-      (t) => t.completed && t.completedAt && new Date(t.completedAt) >= startOfMonth
-    ).length;
-
-    return {
-      total,
-      pending,
-      completed,
-      subtasks,
-      weeklyCompleted,
-      monthlyCompleted,
-    };
-  }, [tasks]);
 
   return {
     tasks,

@@ -6,14 +6,12 @@ import { useEffect, useState } from "react";
 import Button from "@/components/common/Button";
 import { themeOptions } from "@/constants/theme";
 import { useTasks } from "@/hooks/useTasks";
-import { getLocalStorageUsage } from "@/utils/localStorage";
 import { applyThemePreference } from "@/utils/theme";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { stats, activities, removeAllTasks, removeAllActivities } = useTasks();
   const [mounted, setMounted] = useState(false);
-  const storageUsage = mounted ? getLocalStorageUsage() : 0;
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setMounted(true));
@@ -68,7 +66,7 @@ export default function SettingsPage() {
           System Information
         </h2>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <Metric label="Total Tasks" value={stats.total} />
+          <Metric label="Total Tasks" value={stats.totalTasks} />
           <Metric label="Total Activities" value={activities.length} />
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950 flex flex-col justify-between">
             <div>
@@ -104,7 +102,9 @@ export default function SettingsPage() {
               variant="danger"
               className="gap-2"
               onClick={() => {
-                removeAllTasks();
+                if (window.confirm("Are you sure you want to delete ALL tasks? This action cannot be undone.")) {
+                  removeAllTasks();
+                }
               }}
             >
               <Trash2 size={16} />
@@ -114,7 +114,9 @@ export default function SettingsPage() {
               variant="danger"
               className="gap-2"
               onClick={() => {
-                removeAllActivities();
+                if (window.confirm("Are you sure you want to clear all activity history? This action cannot be undone.")) {
+                  removeAllActivities();
+                }
               }}
             >
               <Trash2 size={16} />
