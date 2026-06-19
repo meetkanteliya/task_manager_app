@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { Check, GitBranch, Plus, RotateCcw, Trash2, X, Calendar } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Button from "@/components/common/Button";
 import { Task, TaskPriority } from "@/types/task";
 import { formatDate } from "@/utils/dateFormatter";
@@ -17,6 +18,7 @@ type Props = {
     id: string,
     updates: { title?: string; description?: string; priority?: TaskPriority; dueDate?: string | null }
   ) => void;
+  userRole?: string;
 };
 
 function getPriorityBadgeClass(priority: TaskPriority) {
@@ -81,7 +83,20 @@ export default function TaskCard({
   toggleSubtask,
   deleteSubtask,
   editTask,
+  userRole = "MEMBER",
 }: Props) {
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id;
+  const role = (userRole ?? session?.user?.role ?? "MEMBER") as string;
+  const isOwner = task.userId === currentUserId;
+  const createdByLabel = isOwner ? "You" : (task.user?.name ?? "Unknown");
+
+  // RBAC: who can edit/delete
+  const canEdit =
+    role === "ADMIN" ||
+    ((role === "MANAGER" || role === "MEMBER") && isOwner);
+  // canEdit is false for VIEWER (falls through all conditions)
+
   const [isOpen, setIsOpen] = useState(false);
   const [subtaskTitle, setSubtaskTitle] = useState("");
 
@@ -162,7 +177,7 @@ export default function TaskCard({
               </p>
             )}
             <p className="mt-1.5 text-xs font-medium text-slate-400 dark:text-slate-500">
-              Created {formatDate(task.createdAt)}
+              Created by <span className="text-slate-500 dark:text-slate-400">{createdByLabel}</span> · {formatDate(task.createdAt)}
             </p>
           </div>
 
@@ -241,7 +256,8 @@ export default function TaskCard({
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-[#2563EB] dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-100"
+                  disabled={!canEdit}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-[#2563EB] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-100"
                   placeholder="Task title"
                 />
               </div>
@@ -255,7 +271,8 @@ export default function TaskCard({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-medium text-slate-900 outline-none focus:border-[#2563EB] dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-100"
+                  disabled={!canEdit}
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-sm font-medium text-slate-900 outline-none focus:border-[#2563EB] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-100"
                   placeholder="Add a description..."
                 />
               </div>
@@ -356,48 +373,52 @@ export default function TaskCard({
                   </div>
 
                   {/* Add subtask form inside checklist area */}
-                  <form onSubmit={handleAddSubtask} className="mt-3 flex gap-2">
-                    <input
-                      value={subtaskTitle}
-                      onChange={(e) => setSubtaskTitle(e.target.value)}
-                      placeholder="Add subtask..."
-                      className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#2563EB] dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
-                    />
-                    <button
-                      type="submit"
-                      className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#2563EB] text-white shadow-sm transition-colors hover:bg-blue-700"
-                      aria-label="Add subtask"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </form>
+                  {canEdit && (
+                    <form onSubmit={handleAddSubtask} className="mt-3 flex gap-2">
+                      <input
+                        value={subtaskTitle}
+                        onChange={(e) => setSubtaskTitle(e.target.value)}
+                        placeholder="Add subtask..."
+                        className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#2563EB] dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+                      />
+                      <button
+                        type="submit"
+                        className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#2563EB] text-white shadow-sm transition-colors hover:bg-blue-700"
+                        aria-label="Add subtask"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </form>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Actions Footer */}
-            <div className="flex gap-3 border-t border-slate-200/80 pt-4 dark:border-slate-800 mt-auto">
-              <Button
-                onClick={() => toggleTask(task.id)}
-                variant={task.completed ? "secondary" : "primary"}
-                className="flex-1 gap-2"
-              >
-                {task.completed ? <RotateCcw size={15} /> : <Check size={15} />}
-                {task.completed ? "Undo Completed" : "Mark Complete"}
-              </Button>
+            {canEdit && (
+              <div className="flex gap-3 border-t border-slate-200/80 pt-4 dark:border-slate-800 mt-auto">
+                <Button
+                  onClick={() => toggleTask(task.id)}
+                  variant={task.completed ? "secondary" : "primary"}
+                  className="flex-1 gap-2"
+                >
+                  {task.completed ? <RotateCcw size={15} /> : <Check size={15} />}
+                  {task.completed ? "Undo Completed" : "Mark Complete"}
+                </Button>
 
-              <Button
-                onClick={() => {
-                  deleteTask(task.id);
-                  setIsOpen(false);
-                }}
-                variant="danger"
-                className="flex-1 gap-2"
-              >
-                <Trash2 size={15} />
-                Delete Task
-              </Button>
-            </div>
+                <Button
+                  onClick={() => {
+                    deleteTask(task.id);
+                    setIsOpen(false);
+                  }}
+                  variant="danger"
+                  className="flex-1 gap-2"
+                >
+                  <Trash2 size={15} />
+                  Delete Task
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}

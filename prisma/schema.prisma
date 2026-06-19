@@ -1,16 +1,29 @@
 datasource db {
   provider = "postgresql"
+  schemas  = ["taskflow"]
 }
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["multiSchema"]
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  MEMBER
+  VIEWER
+
+  @@schema("taskflow")
 }
 
 enum TaskPriority {
   low
   medium
   high
+
+  @@schema("taskflow")
 }
 
 model User {
@@ -18,9 +31,12 @@ model User {
   name       String?
   email      String     @unique
   password   String
+  role       Role       @default(MEMBER) 
   createdAt  DateTime   @default(now())
   tasks      Task[]
   activities Activity[]
+
+  @@schema("taskflow")
 }
 
 model Task {
@@ -38,6 +54,7 @@ model Task {
   subtasks    Subtask[]
 
   @@index([userId])
+  @@schema("taskflow")
 }
 
 model Subtask {
@@ -48,6 +65,7 @@ model Subtask {
   task      Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([taskId])
+  @@schema("taskflow")
 }
 
 model Activity {
@@ -59,4 +77,5 @@ model Activity {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@schema("taskflow")
 }

@@ -8,37 +8,35 @@ import {
   LogOut,
   PlusCircle,
   Settings,
+  Shield,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Logo from "@/components/common/Logo";
 
-const navigation = [
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Tasks",
-    href: "/tasks",
-    icon: ClipboardList,
-  },
-  {
-    label: "Create Task",
-    href: "/tasks/create",
-    icon: PlusCircle,
-  },
-  {
-    label: "Settings",
-    href: "/settings",
-    icon: Settings,
-  },
-];
+type Role = "ADMIN" | "MANAGER" | "MEMBER" | "VIEWER";
+
+const ROLE_BADGE: Record<Role, { label: string; bg: string; text: string }> = {
+  ADMIN:   { label: "Admin",   bg: "bg-red-500/15 dark:bg-red-500/20",     text: "text-red-600 dark:text-red-400" },
+  MANAGER: { label: "Manager", bg: "bg-blue-500/15 dark:bg-blue-500/20",    text: "text-blue-600 dark:text-blue-400" },
+  MEMBER:  { label: "Member",  bg: "bg-emerald-500/15 dark:bg-emerald-500/20", text: "text-emerald-600 dark:text-emerald-400" },
+  VIEWER:  { label: "Viewer",  bg: "bg-slate-500/15 dark:bg-slate-500/20",  text: "text-slate-500 dark:text-slate-400" },
+};
+
+function RoleBadge({ role }: { role: Role }) {
+  const badge = ROLE_BADGE[role] ?? ROLE_BADGE.MEMBER;
+  return (
+    <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badge.bg} ${badge.text}`}>
+      {badge.label}
+    </span>
+  );
+}
 
 function UserProfile() {
   const { data: session } = useSession();
 
   if (!session?.user) return null;
+
+  const role = (session.user.role as Role) ?? "MEMBER";
 
   const initials = (session.user.name || session.user.email || "U")
     .split(" ")
@@ -53,7 +51,10 @@ function UserProfile() {
         {initials}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">{session.user.name}</p>
+        <div className="flex items-center gap-2">
+          <p className="truncate text-sm font-semibold">{session.user.name}</p>
+          <RoleBadge role={role} />
+        </div>
         <p className="truncate text-xs text-slate-400">{session.user.email}</p>
       </div>
       <button
@@ -70,8 +71,46 @@ function UserProfile() {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const role = (session?.user?.role as Role) ?? "MEMBER";
 
   const getIsActive = (href: string) => pathname === href;
+
+  // Build navigation items conditionally based on role
+  const navigation = [
+    {
+      label: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+      visible: true,
+    },
+    {
+      label: "Tasks",
+      href: "/tasks",
+      icon: ClipboardList,
+      visible: true,
+    },
+    {
+      label: "Create Task",
+      href: "/tasks/create",
+      icon: PlusCircle,
+      visible: role !== "VIEWER",
+    },
+    {
+      label: "Admin",
+      href: "/admin",
+      icon: Shield,
+      visible: role === "ADMIN",
+    },
+    {
+      label: "Settings",
+      href: "/settings",
+      icon: Settings,
+      visible: role === "ADMIN" || role === "MANAGER",
+    },
+  ];
+
+  const visibleNav = navigation.filter((item) => item.visible);
 
   return (
     <>
@@ -87,7 +126,7 @@ export default function Sidebar() {
         </Link>
 
         <nav className="space-y-1">
-          {navigation.map((item) => {
+          {visibleNav.map((item) => {
             const Icon = item.icon;
             const isActive = getIsActive(item.href);
 
@@ -115,8 +154,8 @@ export default function Sidebar() {
       </aside>
 
       <aside className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-800 bg-[#0F172A] px-2 py-2 text-white md:hidden dark:bg-slate-950">
-        <nav className="grid grid-cols-4 gap-1">
-          {navigation.map((item) => {
+        <nav className={`grid gap-1`} style={{ gridTemplateColumns: `repeat(${Math.min(visibleNav.length, 5)}, minmax(0, 1fr))` }}>
+          {visibleNav.slice(0, 5).map((item) => {
             const Icon = item.icon;
             const isActive = getIsActive(item.href);
 

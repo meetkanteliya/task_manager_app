@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Eye, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import EmptyState from "@/components/common/EmptyState";
 import TaskCard from "@/components/tasks/TaskCard";
 import TaskFilter from "@/components/tasks/TaskFilter";
@@ -20,7 +21,10 @@ export default function TasksPage() {
     deleteSubtask,
     editTask,
     isLoading,
-  } = useTasks();
+  } = useTasks({ fetchAll: true });
+  const { data: session } = useSession();
+  const role = session?.user?.role ?? "MEMBER";
+  const isViewer = role === "VIEWER";
   const [filter, setFilter] = useState<TaskFilterType>("all");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
@@ -98,12 +102,19 @@ export default function TasksPage() {
             </button>
           </div>
 
-          <Link
-            href="/tasks/create"
-            className="inline-flex w-full items-center justify-center rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:w-auto"
-          >
-            Create Task
-          </Link>
+          {isViewer ? (
+            <span className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+              <Eye size={15} />
+              Read-only
+            </span>
+          ) : (
+            <Link
+              href="/tasks/create"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-[#2563EB] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:w-auto"
+            >
+              Create Task
+            </Link>
+          )}
         </div>
       </div>
 
@@ -154,6 +165,7 @@ export default function TasksPage() {
                 toggleSubtask={toggleSubtask}
                 deleteSubtask={deleteSubtask}
                 editTask={editTask}
+                userRole={role}
               />
             ))}
           </div>
@@ -188,6 +200,7 @@ export default function TasksPage() {
                     toggleSubtask={toggleSubtask}
                     deleteSubtask={deleteSubtask}
                     editTask={editTask}
+                    userRole={role}
                   />
                 ))
               )}
@@ -221,6 +234,7 @@ export default function TasksPage() {
                     toggleSubtask={toggleSubtask}
                     deleteSubtask={deleteSubtask}
                     editTask={editTask}
+                    userRole={role}
                   />
                 ))
               )}

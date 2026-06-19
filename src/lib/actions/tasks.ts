@@ -1,5 +1,7 @@
 "use server";
-
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { can, Role } from "@/lib/permissions";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/session";
 import { revalidatePath } from "next/cache";
@@ -10,6 +12,13 @@ import {
   subtaskTitleSchema,
 } from "@/lib/validations/task";
 
+
+// Helper — session + role take both at once
+async function getSessionWithRole() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) throw new Error("Unauthorized");
+  return session;
+}
 // ---------- Fetch Tasks ----------
 
 export async function getTasks() {
@@ -17,7 +26,18 @@ export async function getTasks() {
 
   const tasks = await db.task.findMany({
     where: { userId: user.id },
-    include: { subtasks: true },
+    include: { subtasks: true, user: { select: { id: true, name: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return tasks;
+}
+
+export async function getAllTasks() {
+  await requireAuth();
+
+  const tasks = await db.task.findMany({
+    include: { subtasks: true, user: { select: { id: true, name: true } } },
     orderBy: { createdAt: "desc" },
   });
 
@@ -146,25 +166,33 @@ export async function updateTask(
 // ---------- Delete Task ----------
 
 export async function deleteTask(taskId: string) {
-  const user = await requireAuth();
+  const session = await getSessionWithRole();
+  const role = session.user.role as Role;
+  const userId = session.user.id;
 
-  const existing = await db.task.findFirst({
-    where: { id: taskId, userId: user.id },
-  });
+  const task = await db.task.findUnique({ where: { id: taskId } });
+  if (!task) throw new Error("Task not found");
 
-  if (!existing) {
-    throw new Error("Task not found");
+     
+  // MEMBER: only own tasks delete
+  if (!can(role, "canDeleteAnyTask") && task.userId !== userId) {
+    throw new Error("You can only delete your own tasks");
+  }
+  // VIEWER: cannot delete at all
+  if (!can(role, "canDeleteOwnTask")) {
+    throw new Error("Your role does not allow deleting tasks");
   }
 
   await db.task.delete({
     where: { id: taskId },
   });
 
+
   await db.activity.create({
     data: {
       type: "task_deleted",
-      message: `Deleted task "${existing.title}"`,
-      userId: user.id,
+      message: `Deleted task "${task.title}"`,
+      userId: userId,
     },
   });
 
@@ -175,7 +203,19 @@ export async function deleteTask(taskId: string) {
 }
 
 // ---------- Subtask Operations ----------
+export async function purgeAllTasks() {
+  const session = await getSessionWithRole();
+  const role = session.user.role as Role;
 
+  if (!can(role, "canPurgeData")) {
+    throw new Error("Only admins can purge data");
+  }
+
+  await db.task.deleteMany({ where: { userId: session.user.id } });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/tasks");
+}
 export async function createSubtask(taskId: string, rawTitle: string) {
   const title = subtaskTitleSchema.parse(rawTitle);
   const user = await requireAuth();

@@ -1,8 +1,11 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "taskflow";
+
 -- CreateEnum
-CREATE TYPE "TaskPriority" AS ENUM ('low', 'medium', 'high');
+CREATE TYPE "taskflow"."TaskPriority" AS ENUM ('low', 'medium', 'high');
 
 -- CreateTable
-CREATE TABLE "User" (
+CREATE TABLE "taskflow"."User" (
     "id" TEXT NOT NULL,
     "name" TEXT,
     "email" TEXT NOT NULL,
@@ -13,7 +16,7 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
-CREATE TABLE "Task" (
+CREATE TABLE "taskflow"."Task" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
@@ -22,14 +25,14 @@ CREATE TABLE "Task" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "dueDate" TIMESTAMP(3),
-    "priority" "TaskPriority" NOT NULL DEFAULT 'medium',
+    "priority" "taskflow"."TaskPriority" NOT NULL DEFAULT 'medium',
     "userId" TEXT NOT NULL,
 
     CONSTRAINT "Task_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Subtask" (
+CREATE TABLE "taskflow"."Subtask" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "completed" BOOLEAN NOT NULL DEFAULT false,
@@ -39,7 +42,7 @@ CREATE TABLE "Subtask" (
 );
 
 -- CreateTable
-CREATE TABLE "Activity" (
+CREATE TABLE "taskflow"."Activity" (
     "id" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "message" TEXT NOT NULL,
@@ -50,22 +53,22 @@ CREATE TABLE "Activity" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "User_email_key" ON "taskflow"."User"("email");
 
 -- CreateIndex
-CREATE INDEX "Task_userId_idx" ON "Task"("userId");
+CREATE INDEX "Task_userId_idx" ON "taskflow"."Task"("userId");
 
 -- CreateIndex
-CREATE INDEX "Subtask_taskId_idx" ON "Subtask"("taskId");
+CREATE INDEX "Subtask_taskId_idx" ON "taskflow"."Subtask"("taskId");
 
 -- CreateIndex
-CREATE INDEX "Activity_userId_idx" ON "Activity"("userId");
+CREATE INDEX "Activity_userId_idx" ON "taskflow"."Activity"("userId");
 
 -- AddForeignKey
-ALTER TABLE "Task" ADD CONSTRAINT "Task_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "taskflow"."Task" ADD CONSTRAINT "Task_userId_fkey" FOREIGN KEY ("userId") REFERENCES "taskflow"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Subtask" ADD CONSTRAINT "Subtask_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "taskflow"."Subtask" ADD CONSTRAINT "Subtask_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "taskflow"."Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Activity" ADD CONSTRAINT "Activity_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "taskflow"."Activity" ADD CONSTRAINT "Activity_userId_fkey" FOREIGN KEY ("userId") REFERENCES "taskflow"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

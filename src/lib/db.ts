@@ -7,8 +7,11 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  const adapter = new PrismaPg(pool);
+  const pool = new Pool({ 
+    connectionString: process.env.DATABASE_URL,
+    options: '--search_path=taskflow'  // ADD THIS
+  });
+  const adapter = new PrismaPg(pool, { schema: 'taskflow' });  // ADD THIS
   return new PrismaClient({ adapter });
 }
 

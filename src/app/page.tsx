@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/actions/auth";
+import { promoteFirstUser } from "@/lib/actions/first-user";
 import {
   Eye,
   EyeOff,
@@ -117,6 +118,8 @@ export default function AuthPage() {
         setError("Account created! Please sign in.");
         switchMode("signin");
       } else {
+        // Auto-promote first user to ADMIN
+        await promoteFirstUser();
         router.push("/dashboard");
         router.refresh();
       }
@@ -361,6 +364,15 @@ export default function AuthPage() {
                     {mode === "signin" ? "Sign In" : "Create Account"}
                   </button>
                 </form>
+
+                {mode === "signup" && (
+                  <p className="mt-4 text-center text-xs font-medium text-slate-400 dark:text-slate-500">
+                    <span className="inline-flex items-center gap-1.5">
+                      <ShieldCheck size={13} className="text-blue-500" />
+                      First registered user becomes Admin
+                    </span>
+                  </p>
+                )}
               </div>
             </div>
 

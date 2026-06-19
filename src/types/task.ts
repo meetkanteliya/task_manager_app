@@ -8,6 +8,8 @@ export interface Task {
   description?: string;
   dueDate?: string;
   completedAt?: string;
+  userId: string;
+  user: { id: string; name: string | null };
 }
 
 export interface Subtask {

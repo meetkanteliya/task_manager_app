@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Task, Activity, TaskPriority } from "@/types/task";
 import {
   getTasks as fetchTasks,
+  getAllTasks as fetchAllTasks,
   createTaskWithSubtasks as serverCreateTaskWithSubtasks,
   updateTask as serverUpdateTask,
   deleteTask as serverDeleteTask,
@@ -35,6 +37,8 @@ function mapDbTask(dbTask: Awaited<ReturnType<typeof fetchTasks>>[number]): Task
       title: s.title,
       completed: s.completed,
     })),
+    userId: dbTask.userId,
+    user: { id: dbTask.user.id, name: dbTask.user.name },
   };
 }
 
@@ -70,7 +74,8 @@ const defaultStats: TaskStats = {
   completionRate: 0,
 };
 
-export function useTasks() {
+export function useTasks({ fetchAll = false }: { fetchAll?: boolean } = {}) {
+  const router = useRouter();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [stats, setStats] = useState<TaskStats>(defaultStats);
@@ -79,8 +84,9 @@ export function useTasks() {
 
   const loadData = useCallback(async () => {
     try {
+      const taskFetcher = fetchAll ? fetchAllTasks : fetchTasks;
       const [dbTasks, dbActivities, dbStats] = await Promise.all([
-        fetchTasks(),
+        taskFetcher(),
         fetchActivities(),
         getUserTaskStats(),
       ]);
@@ -119,6 +125,7 @@ export function useTasks() {
         });
 
         await loadData();
+        router.refresh();
         toast.success("Task created");
       } catch (error) {
         console.error("Failed to add task:", error);
@@ -132,6 +139,7 @@ export function useTasks() {
       try {
         await serverDeleteTask(id);
         await loadData();
+        router.refresh();
         toast.success("Task deleted");
       } catch (error) {
         console.error("Failed to delete task:", error);
@@ -148,6 +156,7 @@ export function useTasks() {
       try {
         await serverUpdateTask(id, { completed: !task.completed });
         await loadData();
+        router.refresh();
       } catch (error) {
         console.error("Failed to toggle task:", error);
         toast.error("Failed to update task");
@@ -160,6 +169,7 @@ export function useTasks() {
       try {
         await serverCreateSubtask(taskId, title);
         await loadData();
+        router.refresh();
       } catch (error) {
         console.error("Failed to add subtask:", error);
         toast.error("Failed to add subtask");
@@ -172,6 +182,7 @@ export function useTasks() {
       try {
         await serverToggleSubtask(subtaskId);
         await loadData();
+        router.refresh();
       } catch (error) {
         console.error("Failed to toggle subtask:", error);
         toast.error("Failed to update subtask");
@@ -184,6 +195,7 @@ export function useTasks() {
       try {
         await serverDeleteSubtask(subtaskId);
         await loadData();
+        router.refresh();
       } catch (error) {
         console.error("Failed to delete subtask:", error);
         toast.error("Failed to delete subtask");
@@ -199,6 +211,7 @@ export function useTasks() {
       try {
         await serverUpdateTask(id, updates);
         await loadData();
+        router.refresh();
         toast.success("Task updated");
       } catch (error) {
         console.error("Failed to edit task:", error);
@@ -212,6 +225,7 @@ export function useTasks() {
       try {
         await serverDeleteAllTasks();
         await loadData();
+        router.refresh();
         toast.success("All tasks deleted");
       } catch (error) {
         console.error("Failed to remove all tasks:", error);
@@ -225,6 +239,7 @@ export function useTasks() {
       try {
         await serverClearActivities();
         await loadData();
+        router.refresh();
         toast.success("Activity log cleared");
       } catch (error) {
         console.error("Failed to clear activities:", error);
