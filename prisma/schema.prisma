@@ -36,6 +36,13 @@ model User {
   tasks      Task[]
   activities Activity[]
 
+  // Project relations
+  ownedProjects             Project[]        @relation("OwnedProjects")
+  projectMembers            ProjectMember[]
+  assignedProjectTasks      ProjectTask[]    @relation("AssignedProjectTasks")
+  createdProjectTasks       ProjectTask[]    @relation("CreatedProjectTasks")
+  assignedProjectSubtasks   ProjectSubtask[] @relation("AssignedProjectSubtasks")
+
   @@schema("taskflow")
 }
 
@@ -77,5 +84,67 @@ model Activity {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@schema("taskflow")
+}
+
+// ─── Project & Team Management ───────────────────────────────────
+
+model Project {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String
+  owner       User            @relation("OwnedProjects", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     ProjectMember[]
+  tasks       ProjectTask[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@schema("taskflow")
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  isLeader  Boolean  @default(false)
+  joinedAt  DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@schema("taskflow")
+}
+
+model ProjectTask {
+  id          String           @id @default(cuid())
+  title       String
+  description String?
+  completed   Boolean          @default(false)
+  completedAt DateTime?
+  priority    TaskPriority     @default(medium)
+  dueDate     DateTime?
+  projectId   String
+  assigneeId  String?
+  createdById String
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee    User?            @relation("AssignedProjectTasks", fields: [assigneeId], references: [id])
+  createdBy   User             @relation("CreatedProjectTasks", fields: [createdById], references: [id])
+  subtasks    ProjectSubtask[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@schema("taskflow")
+}
+
+model ProjectSubtask {
+  id            String      @id @default(cuid())
+  title         String
+  completed     Boolean     @default(false)
+  projectTaskId String
+  assigneeId    String?
+  projectTask   ProjectTask @relation(fields: [projectTaskId], references: [id], onDelete: Cascade)
+  assignee      User?       @relation("AssignedProjectSubtasks", fields: [assigneeId], references: [id])
+
   @@schema("taskflow")
 }

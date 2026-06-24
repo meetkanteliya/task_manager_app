@@ -12,36 +12,120 @@ import {
   subtaskTitleSchema,
 } from "@/lib/validations/task";
 
-
-// Helper — session + role take both at once
 async function getSessionWithRole() {
   const session = await getServerSession(authOptions);
   if (!session?.user) throw new Error("Unauthorized");
   return session;
 }
+
 // ---------- Fetch Tasks ----------
 
 export async function getTasks() {
   const user = await requireAuth();
 
-  const tasks = await db.task.findMany({
+  const personalTasks = await db.task.findMany({
     where: { userId: user.id },
     include: { subtasks: true, user: { select: { id: true, name: true } } },
     orderBy: { createdAt: "desc" },
   });
 
-  return tasks;
+  const projectTasks = await db.projectTask.findMany({
+    where: { assigneeId: user.id },
+    include: {
+      subtasks: {
+        include: { assignee: { select: { id: true, name: true } } }
+      },
+      createdBy: { select: { id: true, name: true } },
+      project: { select: { id: true, name: true } }
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const mappedProjectTasks = projectTasks.map((pt) => ({
+    id: pt.id,
+    title: pt.title,
+    description: pt.description,
+    completed: pt.completed,
+    completedAt: pt.completedAt,
+    createdAt: pt.createdAt,
+    updatedAt: pt.updatedAt,
+    dueDate: pt.dueDate,
+    priority: pt.priority,
+    userId: pt.assigneeId || user.id,
+    user: {
+      id: pt.createdBy.id,
+      name: pt.createdBy.name,
+    },
+    subtasks: pt.subtasks.map((s) => ({
+      id: s.id,
+      title: s.title,
+      completed: s.completed,
+    })),
+    isProjectTask: true,
+    projectName: pt.project.name,
+    projectId: pt.project.id
+  }));
+
+  const merged = [...personalTasks, ...mappedProjectTasks];
+  merged.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  return merged;
 }
 
 export async function getAllTasks() {
-  await requireAuth();
+  const user = await requireAuth();
 
-  const tasks = await db.task.findMany({
+  const personalTasks = await db.task.findMany({
     include: { subtasks: true, user: { select: { id: true, name: true } } },
     orderBy: { createdAt: "desc" },
   });
 
-  return tasks;
+  const projectTasks = await db.projectTask.findMany({
+    where: {
+      project: {
+        OR: [
+          { ownerId: user.id },
+          { members: { some: { userId: user.id } } }
+        ]
+      }
+    },
+    include: {
+      subtasks: {
+        include: { assignee: { select: { id: true, name: true } } }
+      },
+      createdBy: { select: { id: true, name: true } },
+      project: { select: { id: true, name: true } }
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const mappedProjectTasks = projectTasks.map((pt) => ({
+    id: pt.id,
+    title: pt.title,
+    description: pt.description,
+    completed: pt.completed,
+    completedAt: pt.completedAt,
+    createdAt: pt.createdAt,
+    updatedAt: pt.updatedAt,
+    dueDate: pt.dueDate,
+    priority: pt.priority,
+    userId: pt.assigneeId || user.id,
+    user: {
+      id: pt.createdBy.id,
+      name: pt.createdBy.name,
+    },
+    subtasks: pt.subtasks.map((s) => ({
+      id: s.id,
+      title: s.title,
+      completed: s.completed,
+    })),
+    isProjectTask: true,
+    projectName: pt.project.name,
+    projectId: pt.project.id
+  }));
+
+  const merged = [...personalTasks, ...mappedProjectTasks];
+  merged.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  return merged;
 }
 
 export async function getTaskById(taskId: string) {
@@ -77,7 +161,6 @@ export async function createTask(rawData: {
     include: { subtasks: true },
   });
 
-  // Log activity
   await db.activity.create({
     data: {
       type: "task_created",
@@ -105,16 +188,21 @@ export async function updateTask(
   }
 ) {
   const data = updateTaskSchema.parse(rawData);
-  const user = await requireAuth();
+  const session = await getSessionWithRole();
+  const role = session.user.role as Role;
+  const userId = session.user.id;
 
-  // Verify ownership
+  // Fetch without userId filter so ADMIN can find any task
   const existing = await db.task.findFirst({
-    where: { id: taskId, userId: user.id },
+    where: { id: taskId },
     include: { subtasks: true },
   });
 
-  if (!existing) {
-    throw new Error("Task not found");
+  if (!existing) throw new Error("Task not found");
+
+  // RBAC check
+  if (!can(role, "canEditAnyTask") && existing.userId !== userId) {
+    throw new Error("You can only edit your own tasks");
   }
 
   const updateData: Record<string, unknown> = {};
@@ -129,7 +217,6 @@ export async function updateTask(
     updateData.completed = data.completed;
     updateData.completedAt = data.completed ? new Date() : null;
 
-    // Sync subtasks completion status
     if (existing.subtasks.length > 0) {
       await db.subtask.updateMany({
         where: { taskId },
@@ -144,7 +231,6 @@ export async function updateTask(
     include: { subtasks: true },
   });
 
-  // Log completion activity
   if (data.completed !== undefined && data.completed !== existing.completed) {
     await db.activity.create({
       data: {
@@ -152,7 +238,7 @@ export async function updateTask(
         message: data.completed
           ? `Completed task "${task.title}"`
           : `Reopened task "${task.title}"`,
-        userId: user.id,
+        userId: userId,
       },
     });
   }
@@ -173,20 +259,15 @@ export async function deleteTask(taskId: string) {
   const task = await db.task.findUnique({ where: { id: taskId } });
   if (!task) throw new Error("Task not found");
 
-     
-  // MEMBER: only own tasks delete
   if (!can(role, "canDeleteAnyTask") && task.userId !== userId) {
     throw new Error("You can only delete your own tasks");
   }
-  // VIEWER: cannot delete at all
+
   if (!can(role, "canDeleteOwnTask")) {
     throw new Error("Your role does not allow deleting tasks");
   }
 
-  await db.task.delete({
-    where: { id: taskId },
-  });
-
+  await db.task.delete({ where: { id: taskId } });
 
   await db.activity.create({
     data: {
@@ -202,7 +283,8 @@ export async function deleteTask(taskId: string) {
   return { success: true };
 }
 
-// ---------- Subtask Operations ----------
+// ---------- Purge ----------
+
 export async function purgeAllTasks() {
   const session = await getSessionWithRole();
   const role = session.user.role as Role;
@@ -216,27 +298,30 @@ export async function purgeAllTasks() {
   revalidatePath("/dashboard");
   revalidatePath("/tasks");
 }
+
+// ---------- Subtask Operations ----------
+
 export async function createSubtask(taskId: string, rawTitle: string) {
   const title = subtaskTitleSchema.parse(rawTitle);
-  const user = await requireAuth();
+  const session = await getSessionWithRole();
+  const role = session.user.role as Role;
+  const userId = session.user.id;
 
-  // Verify task ownership
   const task = await db.task.findFirst({
-    where: { id: taskId, userId: user.id },
+    where: { id: taskId },
   });
 
-  if (!task) {
-    throw new Error("Task not found");
+  if (!task) throw new Error("Task not found");
+
+  // Only own task subtask add kari shake (MEMBER), ADMIN/MANAGER any
+  if (!can(role, "canEditAnyTask") && task.userId !== userId) {
+    throw new Error("You can only add subtasks to your own tasks");
   }
 
   const subtask = await db.subtask.create({
-    data: {
-      title,
-      taskId,
-    },
+    data: { title, taskId },
   });
 
-  // Since a new subtask is pending, the main task can no longer be completed
   if (task.completed) {
     await db.task.update({
       where: { id: taskId },
@@ -248,7 +333,7 @@ export async function createSubtask(taskId: string, rawTitle: string) {
     data: {
       type: "subtask_added",
       message: `Added subtask "${title}" to "${task.title}"`,
-      userId: user.id,
+      userId: userId,
     },
   });
 
@@ -261,7 +346,6 @@ export async function createSubtask(taskId: string, rawTitle: string) {
 export async function toggleSubtask(subtaskId: string) {
   const user = await requireAuth();
 
-  // Find subtask and verify ownership through task
   const subtask = await db.subtask.findFirst({
     where: { id: subtaskId },
     include: { task: true },
@@ -276,7 +360,6 @@ export async function toggleSubtask(subtaskId: string) {
     data: { completed: !subtask.completed },
   });
 
-  // Calculate task completion based on all subtasks status
   const allSubtasks = await db.subtask.findMany({
     where: { taskId: subtask.taskId },
   });
@@ -327,22 +410,24 @@ export async function toggleSubtask(subtaskId: string) {
 }
 
 export async function deleteSubtask(subtaskId: string) {
-  const user = await requireAuth();
+  const session = await getSessionWithRole();
+  const role = session.user.role as Role;
+  const userId = session.user.id;
 
   const subtask = await db.subtask.findFirst({
     where: { id: subtaskId },
     include: { task: true },
   });
 
-  if (!subtask || subtask.task.userId !== user.id) {
-    throw new Error("Subtask not found");
+  if (!subtask) throw new Error("Subtask not found");
+
+  // RBAC check
+  if (!can(role, "canDeleteAnyTask") && subtask.task.userId !== userId) {
+    throw new Error("You can only delete subtasks from your own tasks");
   }
 
-  await db.subtask.delete({
-    where: { id: subtaskId },
-  });
+  await db.subtask.delete({ where: { id: subtaskId } });
 
-  // Check remaining subtasks of this task
   const remainingSubtasks = await db.subtask.findMany({
     where: { taskId: subtask.taskId },
   });
@@ -360,7 +445,7 @@ export async function deleteSubtask(subtaskId: string) {
         data: {
           type: "task_completed",
           message: `Completed task "${subtask.task.title}"`,
-          userId: user.id,
+          userId: userId,
         },
       });
     } else if (!allCompleted && taskWasCompleted) {
@@ -372,7 +457,7 @@ export async function deleteSubtask(subtaskId: string) {
         data: {
           type: "task_reopened",
           message: `Reopened task "${subtask.task.title}"`,
-          userId: user.id,
+          userId: userId,
         },
       });
     }
@@ -441,9 +526,7 @@ export async function deleteAllTasks() {
 
   const count = await db.task.count({ where: { userId: user.id } });
 
-  await db.task.deleteMany({
-    where: { userId: user.id },
-  });
+  await db.task.deleteMany({ where: { userId: user.id } });
 
   await db.activity.create({
     data: {

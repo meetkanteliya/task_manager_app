@@ -19,35 +19,57 @@ export async function getUserTaskStats() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  // Run all queries in parallel
   const [
-    totalTasks,
-    completedTasks,
-    pendingTasks,
-    weeklyCompleted,
-    monthlyCompleted,
-    highPriorityPending,
-    overdueTasks,
+    personalTotal,
+    projectTotal,
+    personalCompleted,
+    projectCompleted,
+    personalPending,
+    projectPending,
+    personalWeekly,
+    projectWeekly,
+    personalMonthly,
+    projectMonthly,
+    personalHigh,
+    projectHigh,
+    personalOverdue,
+    projectOverdue,
   ] = await Promise.all([
     // Total tasks
     db.task.count({
       where: { userId: user.id },
+    }),
+    db.projectTask.count({
+      where: { assigneeId: user.id },
     }),
 
     // Completed tasks
     db.task.count({
       where: { userId: user.id, completed: true },
     }),
+    db.projectTask.count({
+      where: { assigneeId: user.id, completed: true },
+    }),
 
     // Pending tasks
     db.task.count({
       where: { userId: user.id, completed: false },
+    }),
+    db.projectTask.count({
+      where: { assigneeId: user.id, completed: false },
     }),
 
     // Completed this week
     db.task.count({
       where: {
         userId: user.id,
+        completed: true,
+        completedAt: { gte: startOfWeek },
+      },
+    }),
+    db.projectTask.count({
+      where: {
+        assigneeId: user.id,
         completed: true,
         completedAt: { gte: startOfWeek },
       },
@@ -61,11 +83,25 @@ export async function getUserTaskStats() {
         completedAt: { gte: startOfMonth },
       },
     }),
+    db.projectTask.count({
+      where: {
+        assigneeId: user.id,
+        completed: true,
+        completedAt: { gte: startOfMonth },
+      },
+    }),
 
     // High priority pending
     db.task.count({
       where: {
         userId: user.id,
+        completed: false,
+        priority: "high",
+      },
+    }),
+    db.projectTask.count({
+      where: {
+        assigneeId: user.id,
         completed: false,
         priority: "high",
       },
@@ -79,7 +115,22 @@ export async function getUserTaskStats() {
         dueDate: { lt: now },
       },
     }),
+    db.projectTask.count({
+      where: {
+        assigneeId: user.id,
+        completed: false,
+        dueDate: { lt: now },
+      },
+    }),
   ]);
+
+  const totalTasks = personalTotal + projectTotal;
+  const completedTasks = personalCompleted + projectCompleted;
+  const pendingTasks = personalPending + projectPending;
+  const weeklyCompleted = personalWeekly + projectWeekly;
+  const monthlyCompleted = personalMonthly + projectMonthly;
+  const highPriorityPending = personalHigh + projectHigh;
+  const overdueTasks = personalOverdue + projectOverdue;
 
   const completionRate =
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;

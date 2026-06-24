@@ -176,6 +176,13 @@ export default function TaskCard({
                 {task.description}
               </p>
             )}
+            {task.isProjectTask && task.projectName && (
+              <div className="mt-1.5">
+                <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-950/30 dark:text-blue-400">
+                  Project: {task.projectName}
+                </span>
+              </div>
+            )}
             <p className="mt-1.5 text-xs font-medium text-slate-400 dark:text-slate-500">
               Created by <span className="text-slate-500 dark:text-slate-400">{createdByLabel}</span> · {formatDate(task.createdAt)}
             </p>

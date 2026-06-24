@@ -7,6 +7,12 @@ import {
   ListChecks,
   RotateCcw,
   Trash2,
+  FolderPlus,
+  FolderMinus,
+  UserPlus,
+  UserMinus,
+  PlusCircle,
+  HelpCircle,
 } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
 import { ActivityType } from "@/types/task";
@@ -19,6 +25,12 @@ const icons: Record<ActivityType, typeof CirclePlus> = {
   task_deleted: Trash2,
   subtask_added: GitBranchPlus,
   subtask_completed: ListChecks,
+  project_created: FolderPlus,
+  project_deleted: FolderMinus,
+  project_member_added: UserPlus,
+  project_member_removed: UserMinus,
+  project_task_created: PlusCircle,
+  project_task_deleted: Trash2,
 };
 
 export default function ActivityTimeline() {
@@ -40,7 +52,7 @@ export default function ActivityTimeline() {
           </p>
         ) : (
           recentActivities.map((activity) => {
-            const Icon = icons[activity.type];
+            const Icon = icons[activity.type] || HelpCircle;
 
             return (
               <div

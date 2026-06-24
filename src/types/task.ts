@@ -10,6 +10,9 @@ export interface Task {
   completedAt?: string;
   userId: string;
   user: { id: string; name: string | null };
+  isProjectTask?: boolean;
+  projectName?: string;
+  projectId?: string;
 }
 
 export interface Subtask {
@@ -33,4 +36,10 @@ export type ActivityType =
   | "task_reopened"
   | "task_deleted"
   | "subtask_added"
-  | "subtask_completed";
+  | "subtask_completed"
+  | "project_created"
+  | "project_deleted"
+  | "project_member_added"
+  | "project_member_removed"
+  | "project_task_created"
+  | "project_task_deleted";

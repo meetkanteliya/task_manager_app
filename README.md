@@ -21,14 +21,29 @@ A professional, full-stack task management and productivity workspace built with
 *   **Secure Authentication & Route Protection:**
     *   Credentials-based user registration and login with safe password hashing via `bcryptjs`.
     *   Next.js route middleware protection via [middleware.ts](file:///c:/Users/om/Desktop/todo_application/src/middleware.ts) protecting the dashboard, task, and setting panels from unauthorized access.
-*   **Advanced Task & Subtask Management:**
-    *   Create, view, update, and delete tasks with priorities (`low`, `medium`, `high`), description, and optional due dates.
+*   **Role-Based Access Control (RBAC):**
+    *   Four distinct roles: `ADMIN`, `MANAGER`, `MEMBER`, and `VIEWER`.
+    *   **Granular Capabilities:** Action restrictions implemented across pages and server actions using a rule-based capability system (`src/lib/permissions.ts`).
+    *   **Admin-Only Routes:** Route guards redirecting unauthorized roles away from critical endpoints (like the User Management grid).
+    *   **Read-Only Guest Mode:** `VIEWER` users get full read-only visibility into dashboard telemetry, task boards, lists, and activity logs without editing privileges.
+    *   **First-User Admin Designation:** The very first registered user in the database is automatically assigned the `ADMIN` role.
+*   **Granular Task & Subtask Management:**
+    *   Create, view, update, and delete tasks with priorities (`low`, `medium`, `high`), descriptions, and optional due dates.
     *   Nested checklist subtasks support with transactional database creation.
-    *   *Auto-completion sync:* Completing all subtasks automatically resolves the parent task. Conversely, adding a new subtask or reopening an existing checklist item transitions the parent task back to a pending state.
+    *   *Auto-completion sync:* Completing all subtasks automatically resolves the parent task. Adding a new subtask or reopening an existing checklist item transitions the parent task back to a pending state.
+*   **Projects & Team Management (ADMIN & MANAGER Only):**
+    *   Create shared project workspaces with name and optional description fields.
+    *   Dynamic project member management (capped at maximum 8 members per project).
+    *   Assign Team Leader status (crown indicator badge) and remove members (restricted to ADMIN/MANAGER, owners cannot be removed).
+    *   Create, prioritize, and assign project tasks/subtasks to project members.
+    *   Full project deletion capability for project owners and admins.
+*   **Real-Time Data Sync:**
+    *   Instant cache invalidation on the server using Next.js `revalidatePath` inside mutating Server Actions.
+    *   Automatic client-side synchronization through the custom `useTasks` hook calling `router.refresh()` to fetch updated Server Component payloads on data mutations.
 *   **Aggregated Analytics Dashboard:**
     *   Real-time overview analytics counting total, pending, completed, weekly completed, monthly completed, high priority pending, and overdue tasks.
     *   Interactive completion rate progress indicator using SVG radial displays.
-*   **Persistent Activity logs:**
+*   **Persistent Activity Logs:**
     *   Chronological audit log tracking application-wide events like task creation, updates, toggles, deletions, and checklist changes.
     *   Real-time Activity Timeline viewable inside the dashboard.
 *   **Settings Panel & Purge Commands:**
@@ -46,11 +61,14 @@ A professional, full-stack task management and productivity workspace built with
 todo_application/
 ├── prisma/
 │   ├── migrations/          # Database schema migrations
-│   └── schema.prisma        # Database schema definitions (User, Task, Subtask, Activity)
+│   └── schema.prisma        # Database schema definitions targeting Postgres 'taskflow' schema
 ├── src/
 │   ├── app/
 │   │   ├── (main)/          # Authenticated routes
 │   │   │   ├── dashboard/   # Dashboard page with statistics & activity log
+│   │   │   ├── projects/    # Project dashboards & detail views
+│   │   │   │   ├── [id]/    # Project detail view page
+│   │   │   │   └── page.tsx # Projects list view
 │   │   │   ├── settings/    # Account deletion & clear actions
 │   │   │   ├── tasks/       # Task manager board & detail modals
 │   │   │   ├── error.tsx    # App shell error boundary
@@ -62,6 +80,7 @@ todo_application/
 │   │   └── page.tsx         # Welcome screen, signup, and login forms
 │   ├── components/
 │   │   ├── dashboard/       # ActivityTimeline, OverviewCards, StatsCard, RecentTask
+│   │   ├── projects/        # ProjectCard, ProjectTaskCard, AddMemberDialog, AddTaskDialog, CreateProjectDialog
 │   │   ├── tasks/           # TaskCard, TaskFilter, TaskForm
 │   │   ├── ui/              # Interactive primitives (dialog, dropdown, tooltip, select)
 │   │   ├── app-header.tsx   # Top layout bar with user menu
@@ -70,14 +89,15 @@ todo_application/
 │   ├── hooks/
 │   │   ├── useDebounce.ts   # Event callback debouncing
 │   │   ├── useSidebarState.ts# Sidebar open/close controls
-│   │   └── useTasks.ts      # Custom task state management using Next.js Server Actions
+│   │   └── useTasks.ts      # Custom task state management using Next.js Server Actions with router refreshes
 │   ├── lib/
-│   │   ├── actions/         # Server-side operations (auth, tasks, stats, activities)
+│   │   ├── actions/         # Server-side operations (auth, tasks, stats, activities, admin)
 │   │   ├── validations/     # Zod input validation schemas (auth.ts, task.ts)
-│   │   ├── auth.ts          # NextAuth callbacks & credentials provider logic
-│   │   ├── db.ts            # Prisma client adapter setup
+│   │   ├── auth.ts          # NextAuth callbacks & credentials provider logic with role support
+│   │   ├── db.ts            # Prisma client adapter targeting postgres 'taskflow' schema
+│   │   ├── permissions.ts   # RBAC system rule set and helpers
 │   │   └── session.ts       # Server session helper utilities
-│   ├── middleware.ts        # NextAuth route protection middleware
+│   ├── middleware.ts        # NextAuth route protection and RBAC middleware redirects
 │   └── types/               # TypeScript declarations & interfaces
 ```
 
@@ -90,7 +110,7 @@ Follow these steps to run TaskFlow locally.
 ### Prerequisites
 
 *   [Node.js](https://nodejs.org/) v18.18 or later
-*   Running [PostgreSQL](https://www.postgresql.org/) database instance
+*   Running [PostgreSQL](https://www.postgresql.org/) database instance with support for multiple schemas
 
 ### 1. Install Dependencies
 
@@ -113,13 +133,13 @@ NEXTAUTH_URL="http://localhost:3000"
 
 ### 3. Run Prisma Migrations
 
-Sync the database schema with your local PostgreSQL database:
+Sync the database schema with your local PostgreSQL database (configured to build under the custom `taskflow` schema namespace):
 
 ```bash
-npx prisma migrate dev
+npx prisma migrate reset --force
 ```
 
-This will run outstanding migrations and generate the Prisma client interface target inside `src/generated/prisma`.
+This will run all SQL schema migrations, establish the custom `taskflow` schema, and generate the Prisma client interface target inside `src/generated/prisma`.
 
 ### 4. Run the Development Server
 

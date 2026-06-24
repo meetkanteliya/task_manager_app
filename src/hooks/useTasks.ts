@@ -16,6 +16,14 @@ import {
   deleteSubtask as serverDeleteSubtask,
 } from "@/lib/actions/tasks";
 import {
+  toggleProjectTask as serverToggleProjectTask,
+  deleteProjectTask as serverDeleteProjectTask,
+  updateProjectTask as serverUpdateProjectTask,
+  createProjectSubtask as serverCreateProjectSubtask,
+  toggleProjectSubtask as serverToggleProjectSubtask,
+  deleteProjectSubtask as serverDeleteProjectSubtask,
+} from "@/lib/actions/projects";
+import {
   getActivities as fetchActivities,
   clearActivities as serverClearActivities,
 } from "@/lib/actions/activities";
@@ -39,6 +47,9 @@ function mapDbTask(dbTask: Awaited<ReturnType<typeof fetchTasks>>[number]): Task
     })),
     userId: dbTask.userId,
     user: { id: dbTask.user.id, name: dbTask.user.name },
+    isProjectTask: (dbTask as any).isProjectTask,
+    projectName: (dbTask as any).projectName,
+    projectId: (dbTask as any).projectId,
   };
 }
 
@@ -102,8 +113,10 @@ export function useTasks({ fetchAll = false }: { fetchAll?: boolean } = {}) {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+  loadData();
+  const interval = setInterval(loadData, 5000); // har 5 second refresh
+  return () => clearInterval(interval);
+}, [loadData]);
 
   const addTask = (
     title: string,
@@ -135,9 +148,14 @@ export function useTasks({ fetchAll = false }: { fetchAll?: boolean } = {}) {
   };
 
   const deleteTask = (id: string) => {
+    const task = tasks.find((t) => t.id === id);
     startTransition(async () => {
       try {
-        await serverDeleteTask(id);
+        if (task?.isProjectTask) {
+          await serverDeleteProjectTask(id);
+        } else {
+          await serverDeleteTask(id);
+        }
         await loadData();
         router.refresh();
         toast.success("Task deleted");
@@ -154,7 +172,11 @@ export function useTasks({ fetchAll = false }: { fetchAll?: boolean } = {}) {
 
     startTransition(async () => {
       try {
-        await serverUpdateTask(id, { completed: !task.completed });
+        if (task.isProjectTask) {
+          await serverToggleProjectTask(id);
+        } else {
+          await serverUpdateTask(id, { completed: !task.completed });
+        }
         await loadData();
         router.refresh();
       } catch (error) {
@@ -165,9 +187,14 @@ export function useTasks({ fetchAll = false }: { fetchAll?: boolean } = {}) {
   };
 
   const addSubtask = (taskId: string, title: string) => {
+    const task = tasks.find((t) => t.id === taskId);
     startTransition(async () => {
       try {
-        await serverCreateSubtask(taskId, title);
+        if (task?.isProjectTask) {
+          await serverCreateProjectSubtask(taskId, title);
+        } else {
+          await serverCreateSubtask(taskId, title);
+        }
         await loadData();
         router.refresh();
       } catch (error) {
@@ -178,9 +205,14 @@ export function useTasks({ fetchAll = false }: { fetchAll?: boolean } = {}) {
   };
 
   const toggleSubtask = (taskId: string, subtaskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
     startTransition(async () => {
       try {
-        await serverToggleSubtask(subtaskId);
+        if (task?.isProjectTask) {
+          await serverToggleProjectSubtask(subtaskId);
+        } else {
+          await serverToggleSubtask(subtaskId);
+        }
         await loadData();
         router.refresh();
       } catch (error) {
@@ -191,9 +223,14 @@ export function useTasks({ fetchAll = false }: { fetchAll?: boolean } = {}) {
   };
 
   const deleteSubtask = (taskId: string, subtaskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
     startTransition(async () => {
       try {
-        await serverDeleteSubtask(subtaskId);
+        if (task?.isProjectTask) {
+          await serverDeleteProjectSubtask(subtaskId);
+        } else {
+          await serverDeleteSubtask(subtaskId);
+        }
         await loadData();
         router.refresh();
       } catch (error) {
@@ -207,9 +244,19 @@ export function useTasks({ fetchAll = false }: { fetchAll?: boolean } = {}) {
     id: string,
     updates: { title?: string; description?: string; priority?: TaskPriority; dueDate?: string | null }
   ) => {
+    const task = tasks.find((t) => t.id === id);
     startTransition(async () => {
       try {
-        await serverUpdateTask(id, updates);
+        if (task?.isProjectTask) {
+          await serverUpdateProjectTask(id, {
+            title: updates.title,
+            description: updates.description,
+            priority: updates.priority,
+            dueDate: updates.dueDate,
+          });
+        } else {
+          await serverUpdateTask(id, updates);
+        }
         await loadData();
         router.refresh();
         toast.success("Task updated");

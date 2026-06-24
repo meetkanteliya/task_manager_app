@@ -37,3 +37,23 @@ export type Subtask = Prisma.SubtaskModel
  * 
  */
 export type Activity = Prisma.ActivityModel
+/**
+ * Model Project
+ * 
+ */
+export type Project = Prisma.ProjectModel
+/**
+ * Model ProjectMember
+ * 
+ */
+export type ProjectMember = Prisma.ProjectMemberModel
+/**
+ * Model ProjectTask
+ * 
+ */
+export type ProjectTask = Prisma.ProjectTaskModel
+/**
+ * Model ProjectSubtask
+ * 
+ */
+export type ProjectSubtask = Prisma.ProjectSubtaskModel

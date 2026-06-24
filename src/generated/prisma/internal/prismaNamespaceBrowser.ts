@@ -54,7 +54,11 @@ export const ModelName = {
   User: 'User',
   Task: 'Task',
   Subtask: 'Subtask',
-  Activity: 'Activity'
+  Activity: 'Activity',
+  Project: 'Project',
+  ProjectMember: 'ProjectMember',
+  ProjectTask: 'ProjectTask',
+  ProjectSubtask: 'ProjectSubtask'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -120,6 +124,58 @@ export const ActivityScalarFieldEnum = {
 } as const
 
 export type ActivityScalarFieldEnum = (typeof ActivityScalarFieldEnum)[keyof typeof ActivityScalarFieldEnum]
+
+
+export const ProjectScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  ownerId: 'ownerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
+
+
+export const ProjectMemberScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  userId: 'userId',
+  isLeader: 'isLeader',
+  joinedAt: 'joinedAt'
+} as const
+
+export type ProjectMemberScalarFieldEnum = (typeof ProjectMemberScalarFieldEnum)[keyof typeof ProjectMemberScalarFieldEnum]
+
+
+export const ProjectTaskScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  completed: 'completed',
+  completedAt: 'completedAt',
+  priority: 'priority',
+  dueDate: 'dueDate',
+  projectId: 'projectId',
+  assigneeId: 'assigneeId',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectTaskScalarFieldEnum = (typeof ProjectTaskScalarFieldEnum)[keyof typeof ProjectTaskScalarFieldEnum]
+
+
+export const ProjectSubtaskScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  completed: 'completed',
+  projectTaskId: 'projectTaskId',
+  assigneeId: 'assigneeId'
+} as const
+
+export type ProjectSubtaskScalarFieldEnum = (typeof ProjectSubtaskScalarFieldEnum)[keyof typeof ProjectSubtaskScalarFieldEnum]
 
 
 export const SortOrder = {

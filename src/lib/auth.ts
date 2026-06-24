@@ -50,13 +50,20 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
-        token.role = user.role ?? "MEMBER";
+        token.role = user.role || "MEMBER";
       }
+      if (token.id) {
+    const dbUser = await db.user.findUnique({
+      where: { id: token.id as string },
+      select: { role: true },
+    });
+    if (dbUser) token.role = dbUser.role;
+  }
       return token;
     },
     async session({ session, token }) {

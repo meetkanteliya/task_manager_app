@@ -1,9 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ClipboardList,
+  FolderKanban,
   LayoutDashboard,
   LogOut,
   PlusCircle,
@@ -12,6 +14,7 @@ import {
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Logo from "@/components/common/Logo";
+import { getProjects } from "@/lib/actions/projects";
 
 type Role = "ADMIN" | "MANAGER" | "MEMBER" | "VIEWER";
 
@@ -73,6 +76,17 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const role = (session?.user?.role as Role) ?? "MEMBER";
+  const [hasProjects, setHasProjects] = useState(false);
+
+  useEffect(() => {
+    if (session?.user && (role === "MEMBER" || role === "VIEWER")) {
+      getProjects()
+        .then((p) => {
+          if (p.length > 0) setHasProjects(true);
+        })
+        .catch(() => {});
+    }
+  }, [session, role]);
 
   const getIsActive = (href: string) => pathname === href;
 
@@ -89,6 +103,12 @@ export default function Sidebar() {
       href: "/tasks",
       icon: ClipboardList,
       visible: true,
+    },
+    {
+      label: "Projects",
+      href: "/projects",
+      icon: FolderKanban,
+      visible: role === "ADMIN" || role === "MANAGER" || hasProjects,
     },
     {
       label: "Create Task",
