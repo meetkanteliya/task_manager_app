@@ -31,7 +31,7 @@ export default function AddTaskDialog({
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();             
     if (!title.trim()) return;
 
     startTransition(async () => {

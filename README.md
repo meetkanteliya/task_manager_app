@@ -33,7 +33,15 @@ A professional, full-stack task management and productivity workspace built with
     *   *Auto-completion sync:* Completing all subtasks automatically resolves the parent task. Adding a new subtask or reopening an existing checklist item transitions the parent task back to a pending state.
 *   **Projects & Team Management (ADMIN & MANAGER Only):**
     *   Create shared project workspaces with name and optional description fields.
-    *   Dynamic project member management (capped at maximum 8 members per project).
+    *   Dynamic project member management (capped at maximum 8 members **Persistent Activity Logs:**
+    *   Chronological audit log tracking application-wide events like task creation, updates, toggles, deletions, and checklist changes.
+    *   Real-time Activity Timeline viewable inside the dashboard.
+*   **Settings Panel & Purge Commands:**
+    *   Safe interactive triggers to purge all activities or wipe the entire task database using secure server action transactions.
+*   **Modern Responsive UX:**
+    *   Custom dark/light mode toggling utilizing `next-themes`.
+    *   Inline modal-based detail views with auto-save functionality.
+    *   Consistent toast notifications for all backend mutations.per project).
     *   Assign Team Leader status (crown indicator badge) and remove members (restricted to ADMIN/MANAGER, owners cannot be removed).
     *   Create, prioritize, and assign project tasks/subtasks to project members.
     *   Full project deletion capability for project owners and admins.
@@ -43,15 +51,7 @@ A professional, full-stack task management and productivity workspace built with
 *   **Aggregated Analytics Dashboard:**
     *   Real-time overview analytics counting total, pending, completed, weekly completed, monthly completed, high priority pending, and overdue tasks.
     *   Interactive completion rate progress indicator using SVG radial displays.
-*   **Persistent Activity Logs:**
-    *   Chronological audit log tracking application-wide events like task creation, updates, toggles, deletions, and checklist changes.
-    *   Real-time Activity Timeline viewable inside the dashboard.
-*   **Settings Panel & Purge Commands:**
-    *   Safe interactive triggers to purge all activities or wipe the entire task database using secure server action transactions.
-*   **Modern Responsive UX:**
-    *   Custom dark/light mode toggling utilizing `next-themes`.
-    *   Inline modal-based detail views with auto-save functionality.
-    *   Consistent toast notifications for all backend mutations.
+*   
 
 ---
 

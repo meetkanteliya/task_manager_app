@@ -290,6 +290,28 @@ export async function searchUsers(query: string) {
   return users;
 }
 
+/**
+ * Get all users for the add-member dropdown list.
+ * Returns all users ordered by name. Requires ADMIN/MANAGER role.
+ */
+export async function getAllUsers() {
+  const session = await getSessionWithRole();
+  const role = session.user.role as Role;
+  requireRole(role, ["ADMIN", "MANAGER"]);
+
+  const users = await db.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+    },
+    orderBy: [{ name: "asc" }, { email: "asc" }],
+  });
+
+  return users;
+}
+
 // ─── Project Tasks ───────────────────────────────────────────────
 
 /**

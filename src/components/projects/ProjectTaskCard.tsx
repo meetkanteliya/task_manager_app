@@ -11,6 +11,8 @@ import {
   Plus,
   X,
   User,
+  UserCheck,
+  Crown,
 } from "lucide-react";
 import {
   toggleProjectTask,
@@ -68,6 +70,21 @@ const PRIORITY_BADGE: Record<string, string> = {
   low: "bg-blue-50 text-blue-600 ring-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:ring-blue-800/60",
 };
 
+const AVATAR_GRADIENTS = [
+  "from-blue-500 to-indigo-600",
+  "from-violet-500 to-purple-600",
+  "from-emerald-500 to-teal-600",
+  "from-orange-500 to-amber-600",
+  "from-rose-500 to-pink-600",
+  "from-cyan-500 to-sky-600",
+];
+
+function getGradient(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+}
+
 function DueDateBadge({ dueDate, completed }: { dueDate: Date | null; completed: boolean }) {
   if (!dueDate) return null;
   const now = new Date();
@@ -92,6 +109,24 @@ function DueDateBadge({ dueDate, completed }: { dueDate: Date | null; completed:
   );
 }
 
+function MiniAvatar({ name, email, userId }: { name: string | null; email: string; userId: string }) {
+  const initials = (name || email || "?")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const gradient = getGradient(userId);
+  return (
+    <div
+      title={name || email}
+      className={`flex size-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-[8px] font-bold text-white`}
+    >
+      {initials}
+    </div>
+  );
+}
+
 export default function ProjectTaskCard({
   task,
   currentUserId,
@@ -102,6 +137,7 @@ export default function ProjectTaskCard({
   const [expanded, setExpanded] = useState(false);
   const [showSubtaskInput, setShowSubtaskInput] = useState(false);
   const [subtaskTitle, setSubtaskTitle] = useState("");
+  const [subtaskAssigneeId, setSubtaskAssigneeId] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const isAssignee = task.assigneeId === currentUserId;
@@ -140,10 +176,16 @@ export default function ProjectTaskCard({
     if (!subtaskTitle.trim()) return;
     startTransition(async () => {
       try {
-        await createProjectSubtask(task.id, subtaskTitle.trim());
+        await createProjectSubtask(
+          task.id,
+          subtaskTitle.trim(),
+          subtaskAssigneeId || undefined
+        );
         setSubtaskTitle("");
+        setSubtaskAssigneeId("");
         setShowSubtaskInput(false);
         onRefresh();
+        toast.success("Subtask added");
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Failed to add subtask");
       }
@@ -181,6 +223,11 @@ export default function ProjectTaskCard({
         .slice(0, 2)
         .toUpperCase()
     : null;
+
+  const creatorName =
+    task.createdById === currentUserId
+      ? "You"
+      : task.createdBy.name || task.createdBy.email;
 
   return (
     <div
@@ -232,18 +279,28 @@ export default function ProjectTaskCard({
                 {completedSubtasks}/{totalSubtasks} subtasks
               </span>
             )}
+            {/* Creator chip */}
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+              <User size={9} />
+              {creatorName}
+            </span>
           </div>
         </div>
 
-        {/* Assignee avatar */}
-        {task.assignee && (
-          <div
-            title={task.assignee.name || task.assignee.email}
-            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-[9px] font-bold text-white"
-          >
-            {assigneeInitials}
-          </div>
-        )}
+        {/* Assignee avatar — always shown (creator if no explicit assignee) */}
+        <div
+          title={task.assignee ? `Assigned to: ${task.assignee.name || task.assignee.email}` : `Owner: ${task.createdBy.name || task.createdBy.email}`}
+          className={`flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${task.assignee ? getGradient(task.assignee.id) : getGradient(task.createdById)} text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900`}
+        >
+          {task.assignee
+            ? assigneeInitials
+            : (task.createdBy.name || task.createdBy.email || "?")
+                .split(" ")
+                .map((w) => w[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase()}
+        </div>
 
         {/* Expand toggle */}
         <button
@@ -266,80 +323,174 @@ export default function ProjectTaskCard({
           )}
 
           {/* Created by */}
-          <p className="mb-3 text-xs text-slate-400 dark:text-slate-500">
-            Created by{" "}
-            <span className="font-semibold text-slate-600 dark:text-slate-300">
-              {task.createdById === currentUserId ? "You" : task.createdBy.name || task.createdBy.email}
+          <div className="mb-3 flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800/50">
+            <User size={13} className="text-slate-400 shrink-0" />
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              Created by{" "}
+              <span className="font-semibold text-slate-700 dark:text-slate-300">
+                {creatorName}
+              </span>
             </span>
-          </p>
-
-          {/* Assignee dropdown */}
-          {canEdit && (
-            <div className="mb-3">
-              <label className="mb-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">
-                <User size={12} className="mr-1 inline" />
-                Assignee
-              </label>
-              <select
-                value={task.assigneeId || ""}
-                onChange={(e) => handleReassign(e.target.value || null)}
-                disabled={isPending}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-900 outline-none focus:border-[#2563EB] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              >
-                <option value="">Unassigned</option>
-                {members.map((m) => (
-                  <option key={m.userId} value={m.userId}>
-                    {m.user.name || m.user.email}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Subtasks */}
-          {totalSubtasks > 0 && (
-            <div className="mb-3 space-y-1.5">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Subtasks
-              </p>
-              {task.subtasks.map((sub) => (
-                <div key={sub.id} className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleToggleSubtask(sub.id)}
-                    disabled={isPending}
-                    className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
-                      sub.completed
-                        ? "border-emerald-400 bg-emerald-500 text-white"
-                        : "border-slate-300 hover:border-emerald-400 dark:border-slate-600"
-                    }`}
-                  >
-                    {sub.completed && <Check size={10} />}
-                  </button>
-                  <span
-                    className={`text-sm ${
-                      sub.completed
-                        ? "text-slate-400 line-through dark:text-slate-500"
-                        : "text-slate-700 dark:text-slate-300"
-                    }`}
-                  >
-                    {sub.title}
+            {task.assignee && (
+              <>
+                <span className="text-slate-300 dark:text-slate-600">·</span>
+                <UserCheck size={13} className="text-[#2563EB] shrink-0" />
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  Assigned to{" "}
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    {task.assignee.name || task.assignee.email}
                   </span>
-                  {sub.assignee && (
-                    <span className="ml-auto text-[10px] text-slate-400 dark:text-slate-500">
-                      → {sub.assignee.name}
-                    </span>
-                  )}
-                </div>
-              ))}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Assign Task To — checkbox list (one member at a time) */}
+          {canEdit && (
+            <div className="mb-4">
+              <p className="mb-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                <UserCheck size={12} />
+                Assign Task To
+                <span className="ml-auto text-[10px] font-normal text-slate-400">click to (un)assign</span>
+              </p>
+              <div className="grid grid-cols-1 gap-1.5">
+                {members.map((m) => {
+                  const isSelected = task.assigneeId === m.userId;
+                  const initials = (m.user.name || m.user.email || "?")
+                    .split(" ")
+                    .map((w) => w[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase();
+                  const gradient = getGradient(m.user.id);
+                  return (
+                    <label
+                      key={m.userId}
+                      className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
+                        isSelected
+                          ? "border-[#2563EB] bg-blue-50 dark:bg-blue-950/30"
+                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800/50"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleReassign(isSelected ? null : m.userId)}
+                        disabled={isPending}
+                        className="size-3.5 rounded accent-[#2563EB]"
+                      />
+                      <div
+                        className={`flex size-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-[8px] font-bold text-white`}
+                      >
+                        {initials}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-semibold text-slate-800 dark:text-slate-200">
+                          {m.user.name || "Unnamed"}
+                          {m.userId === currentUserId && (
+                            <span className="ml-1 text-[10px] font-normal text-slate-400">(You)</span>
+                          )}
+                        </p>
+                        <p className="truncate text-[10px] text-slate-400 dark:text-slate-500">
+                          {m.user.email}
+                        </p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {/* Add subtask */}
+          {/* ── Subtasks ── */}
+          {totalSubtasks > 0 && (
+            <div className="mb-4">
+              <p className="mb-2 flex items-center gap-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                <Check size={11} />
+                Subtasks
+                <span className="ml-auto rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-500 dark:bg-slate-800">
+                  {completedSubtasks}/{totalSubtasks}
+                </span>
+              </p>
+              <div className="space-y-1.5">
+                {task.subtasks.map((sub) => {
+                  const subtaskAssignee = sub.assignee;
+                  return (
+                    <div
+                      key={sub.id}
+                      className={`flex items-center gap-2.5 rounded-lg border px-3 py-2 transition-colors ${
+                        sub.completed
+                          ? "border-emerald-100 bg-emerald-50/50 dark:border-emerald-900/30 dark:bg-emerald-950/10"
+                          : "border-slate-100 bg-white hover:border-slate-200 dark:border-slate-800 dark:bg-slate-800/30"
+                      }`}
+                    >
+                      {/* Subtask checkbox */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSubtask(sub.id)}
+                        disabled={isPending}
+                        className={`flex size-4 shrink-0 items-center justify-center rounded border transition-colors ${
+                          sub.completed
+                            ? "border-emerald-400 bg-emerald-500 text-white"
+                            : "border-slate-300 bg-white hover:border-emerald-400 hover:bg-emerald-50 dark:border-slate-600 dark:bg-slate-800"
+                        }`}
+                      >
+                        {sub.completed && <Check size={10} />}
+                      </button>
+
+                      {/* Subtask title */}
+                      <span
+                        className={`min-w-0 flex-1 text-sm ${
+                          sub.completed
+                            ? "text-slate-400 line-through dark:text-slate-500"
+                            : "text-slate-700 dark:text-slate-300"
+                        }`}
+                      >
+                        {sub.title}
+                      </span>
+
+                      {/* Subtask assignee — show assignee or fall back to task creator */}
+                      {subtaskAssignee ? (
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <MiniAvatar
+                            name={subtaskAssignee.name}
+                            email={subtaskAssignee.name || ""}
+                            userId={subtaskAssignee.id}
+                          />
+                          <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                            {subtaskAssignee.id === currentUserId
+                              ? "You"
+                              : subtaskAssignee.name || "Unnamed"}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <MiniAvatar
+                            name={task.createdBy.name}
+                            email={task.createdBy.email}
+                            userId={task.createdById}
+                          />
+                          <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+                            {task.createdById === currentUserId ? "You" : task.createdBy.name || task.createdBy.email}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Add subtask form ── */}
           {canEdit && (
             <>
               {showSubtaskInput ? (
-                <div className="flex items-center gap-2">
+                <div className="mb-3 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/40">
+                  <p className="mb-2 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    New Subtask
+                  </p>
+                  {/* Title input */}
                   <input
                     type="text"
                     value={subtaskTitle}
@@ -347,32 +498,89 @@ export default function ProjectTaskCard({
                     onKeyDown={(e) => e.key === "Enter" && handleAddSubtask()}
                     placeholder="Subtask title..."
                     autoFocus
-                    className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-[#2563EB] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                    className="mb-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-[#2563EB] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
                   />
-                  <button
-                    type="button"
-                    onClick={handleAddSubtask}
-                    disabled={isPending || !subtaskTitle.trim()}
-                    className="rounded-lg bg-[#2563EB] p-1.5 text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    <Check size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowSubtaskInput(false);
-                      setSubtaskTitle("");
-                    }}
-                    className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    <X size={14} />
-                  </button>
+
+                  {/* Assign to member — checkbox list */}
+                  <div className="mb-3">
+                    <p className="mb-1.5 flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                      <UserCheck size={11} />
+                      Assign to
+                      <span className="ml-auto font-normal text-slate-400">click to (un)assign</span>
+                    </p>
+                    <div className="max-h-36 overflow-y-auto space-y-1 pr-0.5">
+                      {members.map((m) => {
+                        const isSelected = subtaskAssigneeId === m.userId;
+                        const initials = (m.user.name || m.user.email || "?")
+                          .split(" ")
+                          .map((w) => w[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase();
+                        const gradient = getGradient(m.user.id);
+                        return (
+                          <label
+                            key={m.userId}
+                            className={`flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 transition-colors ${
+                              isSelected
+                                ? "bg-blue-50 dark:bg-blue-950/30"
+                                : "hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() =>
+                                setSubtaskAssigneeId(isSelected ? "" : m.userId)
+                              }
+                              className="size-3.5 rounded accent-[#2563EB]"
+                            />
+                            <div
+                              className={`flex size-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradient} text-[7px] font-bold text-white`}
+                            >
+                              {initials}
+                            </div>
+                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                              {m.user.name || m.user.email}
+                              {m.userId === currentUserId && (
+                                <span className="ml-1 text-[10px] font-normal text-slate-400">(You)</span>
+                              )}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowSubtaskInput(false);
+                        setSubtaskTitle("");
+                        setSubtaskAssigneeId("");
+                      }}
+                      className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddSubtask}
+                      disabled={isPending || !subtaskTitle.trim()}
+                      className="flex items-center gap-1 rounded-lg bg-[#2563EB] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      <Plus size={12} />
+                      Add Subtask
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setShowSubtaskInput(true)}
-                  className="flex items-center gap-1 text-xs font-semibold text-[#2563EB] transition-colors hover:text-blue-700"
+                  className="mb-3 flex items-center gap-1 text-xs font-semibold text-[#2563EB] transition-colors hover:text-blue-700"
                 >
                   <Plus size={13} />
                   Add subtask
@@ -382,7 +590,7 @@ export default function ProjectTaskCard({
           )}
 
           {/* Action buttons */}
-          <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+          <div className="flex items-center gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
             {canEdit && (
               <button
                 type="button"
