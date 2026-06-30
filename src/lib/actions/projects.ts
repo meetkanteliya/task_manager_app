@@ -209,6 +209,7 @@ export async function addProjectMember(
 
   revalidatePath("/projects");
   revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/tasks");
   return { success: true };
 }
 
@@ -255,6 +256,7 @@ export async function removeProjectMember(projectId: string, userId: string) {
 
   revalidatePath("/projects");
   revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/tasks");
   return { success: true };
 }
 

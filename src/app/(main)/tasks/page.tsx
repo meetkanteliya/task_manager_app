@@ -1,15 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Eye, Search, FolderKanban } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import EmptyState from "@/components/common/EmptyState";
 import TaskCard from "@/components/tasks/TaskCard";
 import TaskFilter from "@/components/tasks/TaskFilter";
+import ProjectMemberCard from "@/components/tasks/ProjectMemberCard";
 import { useTasks } from "@/hooks/useTasks";
 import { TaskFilter as TaskFilterType } from "@/types/task";
 import { TasksSkeleton } from "@/components/common/Skeleton";
+import { getMemberProjects } from "@/lib/actions/tasks";
+
+type MemberProject = Awaited<ReturnType<typeof getMemberProjects>>[number];
 
 export default function TasksPage() {
   const {
@@ -28,6 +32,28 @@ export default function TasksPage() {
   const [filter, setFilter] = useState<TaskFilterType>("all");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
+
+  // Member projects — projects this user belongs to
+  const [memberProjects, setMemberProjects] = useState<MemberProject[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+
+  const loadMemberProjects = useCallback(async () => {
+    try {
+      const projects = await getMemberProjects();
+      setMemberProjects(projects);
+    } catch {
+      setMemberProjects([]);
+    } finally {
+      setProjectsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMemberProjects();
+    // Refresh every 10 seconds to pick up newly added memberships
+    const interval = setInterval(loadMemberProjects, 10000);
+    return () => clearInterval(interval);
+  }, [loadMemberProjects]);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -137,6 +163,26 @@ export default function TasksPage() {
           )}
         </div>
       </section>
+
+      {/* My Projects Section — shown when user is a member of at least one project */}
+      {!projectsLoading && memberProjects.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <FolderKanban size={16} className="text-[#2563EB]" />
+            <h2 className="text-sm font-bold uppercase tracking-wide text-[#2563EB]">
+              My Projects
+            </h2>
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
+              {memberProjects.length}
+            </span>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {memberProjects.map((project) => (
+              <ProjectMemberCard key={project.id} project={project} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* List vs Board Render */}
       {isLoading ? (

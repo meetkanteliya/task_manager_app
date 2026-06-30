@@ -139,6 +139,36 @@ export async function getTaskById(taskId: string) {
   return task;
 }
 
+// ---------- Fetch Member Projects ----------
+
+/**
+ * Fetch all projects where the current user is a member.
+ * Used to show project cards in the Tasks section for project members.
+ */
+export async function getMemberProjects() {
+  const user = await requireAuth();
+
+  const projects = await db.project.findMany({
+    where: {
+      members: { some: { userId: user.id } },
+    },
+    include: {
+      owner: { select: { id: true, name: true, email: true } },
+      members: {
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
+      },
+      tasks: {
+        select: { id: true, completed: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return projects;
+}
+
 // ---------- Create Task ----------
 
 export async function createTask(rawData: {

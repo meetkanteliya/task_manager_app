@@ -4,8 +4,8 @@ A professional, full-stack task management and productivity workspace built with
 
 ## Tech Stack
 
-*   **Framework:** Next.js (v16.2.6, App Router)
-*   **Library:** React (v19.2.4)
+*   **Framework:** Next.js (16.2.6, App Router)
+*   **Library:** React (19.2.4)
 *   **Language:** TypeScript (v5)
 *   **Styling:** Tailwind CSS (v4)
 *   **Database ORM:** Prisma (v7.8.0)
@@ -20,38 +20,41 @@ A professional, full-stack task management and productivity workspace built with
 
 *   **Secure Authentication & Route Protection:**
     *   Credentials-based user registration and login with safe password hashing via `bcryptjs`.
-    *   Next.js route middleware protection via [middleware.ts](file:///c:/Users/om/Desktop/todo_application/src/middleware.ts) protecting the dashboard, task, and setting panels from unauthorized access.
-*   **Role-Based Access Control (RBAC):**
+    *   Next.js route middleware protection via [middleware.ts](file:///c:/Users/om/Desktop/todo_application/src/middleware.ts) protecting dashboard, tasks, projects, settings, and administration zones from unauthorized access.
+*   **Role-Based Access Control (RBAC) & Administration:**
     *   Four distinct roles: `ADMIN`, `MANAGER`, `MEMBER`, and `VIEWER`.
-    *   **Granular Capabilities:** Action restrictions implemented across pages and server actions using a rule-based capability system (`src/lib/permissions.ts`).
-    *   **Admin-Only Routes:** Route guards redirecting unauthorized roles away from critical endpoints (like the User Management grid).
-    *   **Read-Only Guest Mode:** `VIEWER` users get full read-only visibility into dashboard telemetry, task boards, lists, and activity logs without editing privileges.
+    *   **Granular Capabilities:** Action restrictions implemented across pages and server actions using a rule-based capability system ([permissions.ts](file:///c:/Users/om/Desktop/todo_application/src/lib/permissions.ts)).
+    *   **User Management Grid:** Admin-only route (`/admin`) for viewing registered users, tracking role counts, and dynamically updating user roles via interactive dropdown selection controls.
+    *   **Read-Only Guest Mode:** `VIEWER` users get full read-only visibility into dashboard telemetry, task boards, lists, and activity logs without editing, deleting, or creation privileges.
     *   **First-User Admin Designation:** The very first registered user in the database is automatically assigned the `ADMIN` role.
 *   **Granular Task & Subtask Management:**
-    *   Create, view, update, and delete tasks with priorities (`low`, `medium`, `high`), descriptions, and optional due dates.
+    *   Create, view, update, and delete tasks with priority levels (`low`, `medium`, `high`), descriptions, and optional due dates.
     *   Nested checklist subtasks support with transactional database creation.
-    *   *Auto-completion sync:* Completing all subtasks automatically resolves the parent task. Adding a new subtask or reopening an existing checklist item transitions the parent task back to a pending state.
-*   **Projects & Team Management (ADMIN & MANAGER Only):**
-    *   Create shared project workspaces with name and optional description fields.
-    *   Dynamic project member management (capped at maximum 8 members **Persistent Activity Logs:**
-    *   Chronological audit log tracking application-wide events like task creation, updates, toggles, deletions, and checklist changes.
-    *   Real-time Activity Timeline viewable inside the dashboard.
-*   **Settings Panel & Purge Commands:**
-    *   Safe interactive triggers to purge all activities or wipe the entire task database using secure server action transactions.
-*   **Modern Responsive UX:**
-    *   Custom dark/light mode toggling utilizing `next-themes`.
-    *   Inline modal-based detail views with auto-save functionality.
-    *   Consistent toast notifications for all backend mutations.per project).
-    *   Assign Team Leader status (crown indicator badge) and remove members (restricted to ADMIN/MANAGER, owners cannot be removed).
-    *   Create, prioritize, and assign project tasks/subtasks to project members.
+    *   **Auto-completion sync:** Completing all subtasks automatically resolves the parent task. Adding a new subtask or reopening an existing checklist item transitions the parent task back to a pending state.
+*   **Projects & Team Workspace Management (ADMIN & MANAGER Only):**
+    *   Create shared project workspaces with a name and description.
+    *   Dynamic project member management (capped at maximum 8 members per project).
+    *   Assign Team Leader status (indicated by a crown indicator badge) and remove members (restricted to ADMIN/MANAGER; project owners cannot be removed).
+    *   Create, prioritize, due-date, and assign project tasks/subtasks to project members.
     *   Full project deletion capability for project owners and admins.
-*   **Real-Time Data Sync:**
-    *   Instant cache invalidation on the server using Next.js `revalidatePath` inside mutating Server Actions.
-    *   Automatic client-side synchronization through the custom `useTasks` hook calling `router.refresh()` to fetch updated Server Component payloads on data mutations.
 *   **Aggregated Analytics Dashboard:**
     *   Real-time overview analytics counting total, pending, completed, weekly completed, monthly completed, high priority pending, and overdue tasks.
     *   Interactive completion rate progress indicator using SVG radial displays.
-*   
+    *   Recent tasks overview.
+*   **Persistent Activity Audit Logs:**
+    *   Chronological audit log tracking application-wide events like task creation, updates, completions, project setups, user signups, role updates, and list toggles.
+    *   Real-time Activity Timeline viewable inside the dashboard.
+*   **Settings Panel & Workspace Controls:**
+    *   Light, dark, and system theme preferences using `next-themes` with a clean visual picker.
+    *   Live system information showing workspace statistics and database connection status.
+    *   Stored workspace data controls (safe actions to clear all of your own tasks or activity history).
+*   **Modern Responsive UX:**
+    *   Custom dark/light mode toggling utilizing `next-themes`.
+    *   Inline modal-based detail views with auto-save functionality.
+    *   Consistent toast notifications for all backend mutations.
+*   **Real-Time Data Sync:**
+    *   Instant cache invalidation on the server using Next.js `revalidatePath` inside mutating Server Actions.
+    *   Automatic client-side synchronization through the custom [useTasks.ts](file:///c:/Users/om/Desktop/todo_application/src/hooks/useTasks.ts) hook calling `router.refresh()` to fetch updated Server Component payloads on data mutations.
 
 ---
 
@@ -73,6 +76,7 @@ todo_application/
 │   │   │   ├── tasks/       # Task manager board & detail modals
 │   │   │   ├── error.tsx    # App shell error boundary
 │   │   │   └── layout.tsx   # Sidebar app navigation layout
+│   │   ├── admin/           # Admin-only dashboard for managing user roles & permissions
 │   │   ├── api/
 │   │   │   └── auth/        # NextAuth API route setup
 │   │   ├── globals.css      # Core Tailwind CSS imports & theme configurations
@@ -82,7 +86,7 @@ todo_application/
 │   │   ├── dashboard/       # ActivityTimeline, OverviewCards, StatsCard, RecentTask
 │   │   ├── projects/        # ProjectCard, ProjectTaskCard, AddMemberDialog, AddTaskDialog, CreateProjectDialog
 │   │   ├── tasks/           # TaskCard, TaskFilter, TaskForm
-│   │   ├── ui/              # Interactive primitives (dialog, dropdown, tooltip, select)
+│   │   ├── ui/              # Interactive Radix UI primitives (dialog, dropdown, tooltip, select)
 │   │   ├── app-header.tsx   # Top layout bar with user menu
 │   │   ├── app-shell.tsx    # Main interface structure handler
 │   │   └── app-sidebar.tsx  # Sidebar navigation components

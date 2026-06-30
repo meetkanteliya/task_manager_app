@@ -110,6 +110,8 @@ export default function ProjectDetailPage() {
   const isOwner = project.ownerId === currentUserId;
   const isAdmin = role === "ADMIN";
   const canDeleteProject = isAdmin || isOwner;
+  // Only ADMIN and MANAGER can add/remove members
+  const canManageMembers = role === "ADMIN" || role === "MANAGER";
 
   const totalTasks = project.tasks.length;
   const completedTasks = project.tasks.filter((t) => t.completed).length;
@@ -272,7 +274,7 @@ export default function ProjectDetailPage() {
                 {project.members.length} of 8 members limit
               </p>
             </div>
-            {project.members.length < 8 && (
+            {canManageMembers && project.members.length < 8 && (
               <button
                 type="button"
                 onClick={() => setShowAddMember(true)}
@@ -328,7 +330,7 @@ export default function ProjectDetailPage() {
                       <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                         {member.user.role}
                       </span>
-                      {!isMemberOwner && (
+                      {canManageMembers && !isMemberOwner && (
                         <button
                           type="button"
                           onClick={() => handleRemoveMember(member.userId)}
