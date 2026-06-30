@@ -26,3 +26,34 @@ export const TaskPriority = {
 } as const
 
 export type TaskPriority = (typeof TaskPriority)[keyof typeof TaskPriority]
+
+
+export const ProjectStatus = {
+  PLANNING: 'PLANNING',
+  ACTIVE: 'ACTIVE',
+  ON_HOLD: 'ON_HOLD',
+  COMPLETED: 'COMPLETED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type ProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus]
+
+
+export const ProjectActivityType = {
+  PROJECT_CREATED: 'PROJECT_CREATED',
+  MEMBER_ADDED: 'MEMBER_ADDED',
+  MEMBER_REMOVED: 'MEMBER_REMOVED',
+  LEADER_ASSIGNED: 'LEADER_ASSIGNED',
+  LEADER_REMOVED: 'LEADER_REMOVED',
+  TASK_CREATED: 'TASK_CREATED',
+  TASK_UPDATED: 'TASK_UPDATED',
+  TASK_COMPLETED: 'TASK_COMPLETED',
+  SUBTASK_COMPLETED: 'SUBTASK_COMPLETED',
+  STATUS_CHANGED: 'STATUS_CHANGED',
+  TIMELINE_UPDATED: 'TIMELINE_UPDATED',
+  RESOURCE_UPLOADED: 'RESOURCE_UPLOADED',
+  RESOURCE_DELETED: 'RESOURCE_DELETED',
+  PROJECT_ARCHIVED: 'PROJECT_ARCHIVED'
+} as const
+
+export type ProjectActivityType = (typeof ProjectActivityType)[keyof typeof ProjectActivityType]

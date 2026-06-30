@@ -391,7 +391,9 @@ export const ModelName = {
   Project: 'Project',
   ProjectMember: 'ProjectMember',
   ProjectTask: 'ProjectTask',
-  ProjectSubtask: 'ProjectSubtask'
+  ProjectSubtask: 'ProjectSubtask',
+  ProjectActivity: 'ProjectActivity',
+  ProjectResource: 'ProjectResource'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -407,7 +409,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "task" | "subtask" | "activity" | "project" | "projectMember" | "projectTask" | "projectSubtask"
+    modelProps: "user" | "task" | "subtask" | "activity" | "project" | "projectMember" | "projectTask" | "projectSubtask" | "projectActivity" | "projectResource"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1003,6 +1005,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProjectActivity: {
+      payload: Prisma.$ProjectActivityPayload<ExtArgs>
+      fields: Prisma.ProjectActivityFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProjectActivityFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectActivityPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProjectActivityFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectActivityPayload>
+        }
+        findFirst: {
+          args: Prisma.ProjectActivityFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectActivityPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProjectActivityFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectActivityPayload>
+        }
+        findMany: {
+          args: Prisma.ProjectActivityFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectActivityPayload>[]
+        }
+        create: {
+          args: Prisma.ProjectActivityCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectActivityPayload>
+        }
+        createMany: {
+          args: Prisma.ProjectActivityCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProjectActivityCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectActivityPayload>[]
+        }
+        delete: {
+          args: Prisma.ProjectActivityDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectActivityPayload>
+        }
+        update: {
+          args: Prisma.ProjectActivityUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectActivityPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProjectActivityDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProjectActivityUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProjectActivityUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectActivityPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProjectActivityUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectActivityPayload>
+        }
+        aggregate: {
+          args: Prisma.ProjectActivityAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProjectActivity>
+        }
+        groupBy: {
+          args: Prisma.ProjectActivityGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectActivityGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProjectActivityCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectActivityCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProjectResource: {
+      payload: Prisma.$ProjectResourcePayload<ExtArgs>
+      fields: Prisma.ProjectResourceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProjectResourceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectResourcePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProjectResourceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectResourcePayload>
+        }
+        findFirst: {
+          args: Prisma.ProjectResourceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectResourcePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProjectResourceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectResourcePayload>
+        }
+        findMany: {
+          args: Prisma.ProjectResourceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectResourcePayload>[]
+        }
+        create: {
+          args: Prisma.ProjectResourceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectResourcePayload>
+        }
+        createMany: {
+          args: Prisma.ProjectResourceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProjectResourceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectResourcePayload>[]
+        }
+        delete: {
+          args: Prisma.ProjectResourceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectResourcePayload>
+        }
+        update: {
+          args: Prisma.ProjectResourceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectResourcePayload>
+        }
+        deleteMany: {
+          args: Prisma.ProjectResourceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProjectResourceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProjectResourceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectResourcePayload>[]
+        }
+        upsert: {
+          args: Prisma.ProjectResourceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectResourcePayload>
+        }
+        aggregate: {
+          args: Prisma.ProjectResourceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProjectResource>
+        }
+        groupBy: {
+          args: Prisma.ProjectResourceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectResourceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProjectResourceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectResourceCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1095,6 +1245,9 @@ export const ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
+  status: 'status',
+  startDate: 'startDate',
+  endDate: 'endDate',
   ownerId: 'ownerId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1141,6 +1294,32 @@ export const ProjectSubtaskScalarFieldEnum = {
 } as const
 
 export type ProjectSubtaskScalarFieldEnum = (typeof ProjectSubtaskScalarFieldEnum)[keyof typeof ProjectSubtaskScalarFieldEnum]
+
+
+export const ProjectActivityScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  message: 'message',
+  projectId: 'projectId',
+  userId: 'userId',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectActivityScalarFieldEnum = (typeof ProjectActivityScalarFieldEnum)[keyof typeof ProjectActivityScalarFieldEnum]
+
+
+export const ProjectResourceScalarFieldEnum = {
+  id: 'id',
+  filename: 'filename',
+  fileUrl: 'fileUrl',
+  fileSize: 'fileSize',
+  mimeType: 'mimeType',
+  projectId: 'projectId',
+  uploadedById: 'uploadedById',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectResourceScalarFieldEnum = (typeof ProjectResourceScalarFieldEnum)[keyof typeof ProjectResourceScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1237,6 +1416,34 @@ export type ListEnumTaskPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<
 
 
 /**
+ * Reference to a field of type 'ProjectStatus'
+ */
+export type EnumProjectStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ProjectStatus[]'
+ */
+export type ListEnumProjectStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ProjectActivityType'
+ */
+export type EnumProjectActivityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectActivityType'>
+    
+
+
+/**
+ * Reference to a field of type 'ProjectActivityType[]'
+ */
+export type ListEnumProjectActivityTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectActivityType[]'>
+    
+
+
+/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -1247,6 +1454,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 /**
@@ -1367,6 +1588,8 @@ export type GlobalOmitConfig = {
   projectMember?: Prisma.ProjectMemberOmit
   projectTask?: Prisma.ProjectTaskOmit
   projectSubtask?: Prisma.ProjectSubtaskOmit
+  projectActivity?: Prisma.ProjectActivityOmit
+  projectResource?: Prisma.ProjectResourceOmit
 }
 
 /* Types for Logging */

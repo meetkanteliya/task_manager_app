@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar, Users, Crown, CheckCircle2, Clock } from "lucide-react";
+import { Calendar, Users, Crown, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import ProjectStatusBadge from "./ProjectStatusBadge";
 
 type Member = {
   id: string;
@@ -14,7 +15,10 @@ type ProjectCardProps = {
     id: string;
     name: string;
     description: string | null;
-    createdAt: Date;
+    createdAt: Date | string;
+    status: string;
+    startDate: Date | string | null;
+    endDate: Date | string | null;
     owner: { id: string; name: string | null; email: string };
     members: Member[];
     tasks: { id: string; completed: boolean }[];
@@ -150,7 +154,9 @@ function MemberList({ members }: { members: Member[] }) {
                 {m.user.name || m.user.email}
               </span>
               {m.isLeader && (
-                <Crown size={10} className="shrink-0 text-amber-500" title="Team Leader" />
+                <span title="Team Leader">
+                  <Crown size={10} className="shrink-0 text-amber-500" />
+                </span>
               )}
             </div>
           );
@@ -172,6 +178,12 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   const health = getProjectHealth(project.tasks);
   const cfg = HEALTH_CONFIG[health];
 
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const end = project.endDate ? new Date(project.endDate) : null;
+  const isCompleted = project.status === "COMPLETED" || project.status === "ARCHIVED";
+  const isOverdue = end && !isCompleted && end < now;
+
   return (
     <Link href={`/projects/${project.id}`} className="group block">
       <div
@@ -190,22 +202,33 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                 </p>
               )}
             </div>
-            {/* Health badge */}
-            <span
-              className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${cfg.badge} flex items-center gap-1`}
-            >
-              <span className={`size-1.5 rounded-full ${cfg.dot}`} />
-              {cfg.label}
-            </span>
+            {/* Status and Health badges */}
+            <div className="flex flex-col items-end gap-1.5 shrink-0">
+              <ProjectStatusBadge status={project.status} size="sm" />
+              <span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ${cfg.badge} flex items-center gap-1`}
+              >
+                <span className={`size-1.5 rounded-full ${cfg.dot}`} />
+                {cfg.label}
+              </span>
+            </div>
           </div>
 
-          {/* Owner */}
-          <p className="text-xs text-slate-400 dark:text-slate-500">
-            by{" "}
-            <span className="font-semibold text-slate-600 dark:text-slate-300">
-              {project.owner.name || project.owner.email}
-            </span>
-          </p>
+          {/* Owner & Overdue */}
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              by{" "}
+              <span className="font-semibold text-slate-600 dark:text-slate-300">
+                {project.owner.name || project.owner.email}
+              </span>
+            </p>
+            {isOverdue && (
+              <span className="inline-flex items-center gap-1 rounded bg-red-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-red-600 dark:bg-red-950/40 dark:text-red-400 animate-pulse">
+                <AlertTriangle size={10} />
+                Overdue
+              </span>
+            )}
+          </div>
         </div>
 
         {/* ── Progress ── */}
@@ -247,11 +270,15 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 px-5 py-3">
           <span className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
             <Clock size={11} />
-            {new Date(project.createdAt).toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
+            {project.endDate ? (
+              <span>Due: {new Date(project.endDate).toLocaleDateString()}</span>
+            ) : (
+              <span>Created {new Date(project.createdAt).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}</span>
+            )}
           </span>
           <span className="text-xs font-semibold text-[#2563EB] opacity-0 transition-opacity group-hover:opacity-100">
             View Project →

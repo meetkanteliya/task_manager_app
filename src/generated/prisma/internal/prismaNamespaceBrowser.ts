@@ -58,7 +58,9 @@ export const ModelName = {
   Project: 'Project',
   ProjectMember: 'ProjectMember',
   ProjectTask: 'ProjectTask',
-  ProjectSubtask: 'ProjectSubtask'
+  ProjectSubtask: 'ProjectSubtask',
+  ProjectActivity: 'ProjectActivity',
+  ProjectResource: 'ProjectResource'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -130,6 +132,9 @@ export const ProjectScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
+  status: 'status',
+  startDate: 'startDate',
+  endDate: 'endDate',
   ownerId: 'ownerId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -176,6 +181,32 @@ export const ProjectSubtaskScalarFieldEnum = {
 } as const
 
 export type ProjectSubtaskScalarFieldEnum = (typeof ProjectSubtaskScalarFieldEnum)[keyof typeof ProjectSubtaskScalarFieldEnum]
+
+
+export const ProjectActivityScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  message: 'message',
+  projectId: 'projectId',
+  userId: 'userId',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectActivityScalarFieldEnum = (typeof ProjectActivityScalarFieldEnum)[keyof typeof ProjectActivityScalarFieldEnum]
+
+
+export const ProjectResourceScalarFieldEnum = {
+  id: 'id',
+  filename: 'filename',
+  fileUrl: 'fileUrl',
+  fileSize: 'fileSize',
+  mimeType: 'mimeType',
+  projectId: 'projectId',
+  uploadedById: 'uploadedById',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectResourceScalarFieldEnum = (typeof ProjectResourceScalarFieldEnum)[keyof typeof ProjectResourceScalarFieldEnum]
 
 
 export const SortOrder = {

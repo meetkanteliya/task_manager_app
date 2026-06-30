@@ -31,12 +31,17 @@ A professional, full-stack task management and productivity workspace built with
     *   Create, view, update, and delete tasks with priority levels (`low`, `medium`, `high`), descriptions, and optional due dates.
     *   Nested checklist subtasks support with transactional database creation.
     *   **Auto-completion sync:** Completing all subtasks automatically resolves the parent task. Adding a new subtask or reopening an existing checklist item transitions the parent task back to a pending state.
-*   **Projects & Team Workspace Management (ADMIN & MANAGER Only):**
-    *   Create shared project workspaces with a name and description.
-    *   Dynamic project member management (capped at maximum 8 members per project).
-    *   Assign Team Leader status (indicated by a crown indicator badge) and remove members (restricted to ADMIN/MANAGER; project owners cannot be removed).
-    *   Create, prioritize, due-date, and assign project tasks/subtasks to project members.
-    *   Full project deletion capability for project owners and admins.
+*   **Projects & Team Workspace Collaboration:**
+    *   **Shared Workspaces (ADMIN & MANAGER Only):** Create collaborative workspaces with optional start/end dates, name, and description.
+    *   **Project Status Lifecycle:** Manage workflow transitions (Planning → Active → On Hold → Completed → Archived) governed by valid transition rules.
+    *   **Archived Project Read-Only Banner:** Archived workspaces enter a view-only mode, locking all tasks, members, and resources.
+    *   **Dynamic Timeline Calculations:** Render start/end dates with relative smart labels computed on-the-fly (e.g., "Ends Tomorrow", "Overdue by 3 days").
+    *   **Project Activity Logs:** Chronological timeline showing audit trails (member additions, task completions, resource uploads, status changes).
+    *   **Collaborative Resources:** Attach PDFs, DOCXs, ZIPs, or images (up to 10MB per file) with duplicate checks, inline image previews, inline PDF tabs, and download buttons.
+    *   **Workspace Statistics:** Direct view cards aggregating team member count, task distributions (total, pending, completed, high priority, overdue), and radial completion percentage metrics.
+    *   **Workspace Search:** Search bars utilizing debounced inputs to query projects instantly by name or description.
+    *   **Team Delegation:** Add up to 8 members per workspace, assign Team Leaders (designated by crown indicator badges), and assign tasks/subtasks to project members.
+    *   **Workspace Deletion:** Admins and project owners can delete the entire project.
 *   **Aggregated Analytics Dashboard:**
     *   Real-time overview analytics counting total, pending, completed, weekly completed, monthly completed, high priority pending, and overdue tasks.
     *   Interactive completion rate progress indicator using SVG radial displays.
@@ -78,13 +83,14 @@ todo_application/
 │   │   │   └── layout.tsx   # Sidebar app navigation layout
 │   │   ├── admin/           # Admin-only dashboard for managing user roles & permissions
 │   │   ├── api/
-│   │   │   └── auth/        # NextAuth API route setup
+│   │   │   ├── auth/        # NextAuth API route setup
+│   │   │   └── projects/[id]/resources/upload/route.ts # File upload handler endpoint
 │   │   ├── globals.css      # Core Tailwind CSS imports & theme configurations
 │   │   ├── layout.tsx       # Root document layout with providers (Theme, Auth, Toast)
 │   │   └── page.tsx         # Welcome screen, signup, and login forms
 │   ├── components/
 │   │   ├── dashboard/       # ActivityTimeline, OverviewCards, StatsCard, RecentTask
-│   │   ├── projects/        # ProjectCard, ProjectTaskCard, AddMemberDialog, AddTaskDialog, CreateProjectDialog
+│   │   ├── projects/        # ProjectCard, ProjectTaskCard, AddMemberDialog, AddTaskDialog, CreateProjectDialog, ProjectStatusBadge, ProjectStatusSelect, ProjectTimeline, ProjectActivityTimeline, ProjectResources, ProjectStats, ProjectSearch
 │   │   ├── tasks/           # TaskCard, TaskFilter, TaskForm
 │   │   ├── ui/              # Interactive Radix UI primitives (dialog, dropdown, tooltip, select)
 │   │   ├── app-header.tsx   # Top layout bar with user menu
@@ -95,8 +101,8 @@ todo_application/
 │   │   ├── useSidebarState.ts# Sidebar open/close controls
 │   │   └── useTasks.ts      # Custom task state management using Next.js Server Actions with router refreshes
 │   ├── lib/
-│   │   ├── actions/         # Server-side operations (auth, tasks, stats, activities, admin)
-│   │   ├── validations/     # Zod input validation schemas (auth.ts, task.ts)
+│   │   ├── actions/         # Server-side operations (auth, tasks, stats, activities, admin, projects)
+│   │   ├── validations/     # Zod input validation schemas (auth.ts, task.ts, project.ts)
 │   │   ├── auth.ts          # NextAuth callbacks & credentials provider logic with role support
 │   │   ├── db.ts            # Prisma client adapter targeting postgres 'taskflow' schema
 │   │   ├── permissions.ts   # RBAC system rule set and helpers

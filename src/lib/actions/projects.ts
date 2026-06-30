@@ -5,6 +5,10 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Role } from "@/lib/permissions";
 import { revalidatePath } from "next/cache";
+import {
+  VALID_STATUS_TRANSITIONS,
+  type ProjectStatusType,
+} from "@/lib/validations/project";
 
 const MAX_PROJECT_MEMBERS = 8;
 
@@ -22,13 +26,59 @@ function requireRole(role: string, allowed: Role[]) {
   }
 }
 
+// ─── Archived Guard ──────────────────────────────────────────────
+
+async function requireNotArchived(projectId: string) {
+  const project = await db.project.findUnique({
+    where: { id: projectId },
+    select: { status: true },
+  });
+  if (project?.status === "ARCHIVED") {
+    throw new Error("This project is archived and read-only");
+  }
+}
+
+// ─── Project Activity Logger ─────────────────────────────────────
+
+type ProjectActivityTypeEnum =
+  | "PROJECT_CREATED"
+  | "MEMBER_ADDED"
+  | "MEMBER_REMOVED"
+  | "LEADER_ASSIGNED"
+  | "LEADER_REMOVED"
+  | "TASK_CREATED"
+  | "TASK_UPDATED"
+  | "TASK_COMPLETED"
+  | "SUBTASK_COMPLETED"
+  | "STATUS_CHANGED"
+  | "TIMELINE_UPDATED"
+  | "RESOURCE_UPLOADED"
+  | "RESOURCE_DELETED"
+  | "PROJECT_ARCHIVED";
+
+async function logProjectActivity(
+  projectId: string,
+  userId: string,
+  type: ProjectActivityTypeEnum,
+  message: string
+) {
+  await db.projectActivity.create({
+    data: { type, message, projectId, userId },
+  });
+}
+
 // ─── Project CRUD ────────────────────────────────────────────────
 
 /**
  * Create a new project. ADMIN/MANAGER only.
  * Creator is automatically set as owner and added as a member (leader).
  */
-export async function createProject(name: string, description?: string) {
+export async function createProject(
+  name: string,
+  description?: string,
+  startDate?: string,
+  endDate?: string
+) {
   const session = await getSessionWithRole();
   const role = session.user.role as Role;
   requireRole(role, ["ADMIN", "MANAGER"]);
@@ -42,6 +92,8 @@ export async function createProject(name: string, description?: string) {
       data: {
         name: name.trim(),
         description: description?.trim() || null,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
         ownerId: session.user.id,
       },
     });
@@ -55,11 +107,21 @@ export async function createProject(name: string, description?: string) {
       },
     });
 
-    // Log activity
+    // Log global activity
     await tx.activity.create({
       data: {
         type: "project_created",
         message: `Created project "${created.name}"`,
+        userId: session.user.id,
+      },
+    });
+
+    // Log project-scoped activity
+    await tx.projectActivity.create({
+      data: {
+        type: "PROJECT_CREATED",
+        message: `${session.user.name || session.user.email} created this project`,
+        projectId: created.id,
         userId: session.user.id,
       },
     });
@@ -131,6 +193,19 @@ export async function getProjectById(projectId: string) {
         },
         orderBy: { createdAt: "desc" },
       },
+      activities: {
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      },
+      resources: {
+        include: {
+          uploadedBy: { select: { id: true, name: true, email: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 
@@ -149,6 +224,196 @@ export async function getProjectById(projectId: string) {
   return project;
 }
 
+// ─── Project Status & Timeline ───────────────────────────────────
+
+/**
+ * Update project status with lifecycle transition validation.
+ * ADMIN, MANAGER, or Project Owner only.
+ */
+export async function updateProjectStatus(projectId: string, newStatus: string) {
+  const session = await getSessionWithRole();
+  const role = session.user.role as Role;
+
+  const project = await db.project.findUnique({
+    where: { id: projectId },
+    select: { id: true, name: true, status: true, ownerId: true },
+  });
+  if (!project) throw new Error("Project not found");
+
+  // Permission check
+  const isOwner = project.ownerId === session.user.id;
+  if (role !== "ADMIN" && role !== "MANAGER" && !isOwner) {
+    throw new Error("You do not have permission to change project status");
+  }
+
+  // Validate transition
+  const currentStatus = project.status as ProjectStatusType;
+  const targetStatus = newStatus as ProjectStatusType;
+  const allowedTransitions = VALID_STATUS_TRANSITIONS[currentStatus];
+
+  if (!allowedTransitions || !allowedTransitions.includes(targetStatus)) {
+    throw new Error(
+      `Cannot transition from "${currentStatus}" to "${targetStatus}"`
+    );
+  }
+
+  await db.project.update({
+    where: { id: projectId },
+    data: { status: targetStatus },
+  });
+
+  // Log project activity
+  await logProjectActivity(
+    projectId,
+    session.user.id,
+    targetStatus === "ARCHIVED" ? "PROJECT_ARCHIVED" : "STATUS_CHANGED",
+    `${session.user.name || session.user.email} changed status from ${currentStatus} to ${targetStatus}`
+  );
+
+  // Log global activity
+  await db.activity.create({
+    data: {
+      type: "project_status_changed",
+      message: `Changed status of "${project.name}" to ${targetStatus}`,
+      userId: session.user.id,
+    },
+  });
+
+  revalidatePath("/projects");
+  revalidatePath(`/projects/${projectId}`);
+  return { success: true };
+}
+
+/**
+ * Update project timeline (start date and/or end date).
+ * ADMIN, MANAGER, or Project Owner only.
+ */
+export async function updateProjectTimeline(
+  projectId: string,
+  startDate: string | null,
+  endDate: string | null
+) {
+  const session = await getSessionWithRole();
+  const role = session.user.role as Role;
+
+  const project = await db.project.findUnique({
+    where: { id: projectId },
+    select: { id: true, name: true, status: true, ownerId: true },
+  });
+  if (!project) throw new Error("Project not found");
+
+  if (project.status === "ARCHIVED") {
+    throw new Error("This project is archived and read-only");
+  }
+
+  const isOwner = project.ownerId === session.user.id;
+  if (role !== "ADMIN" && role !== "MANAGER" && !isOwner) {
+    throw new Error("You do not have permission to update project timeline");
+  }
+
+  await db.project.update({
+    where: { id: projectId },
+    data: {
+      startDate: startDate ? new Date(startDate) : null,
+      endDate: endDate ? new Date(endDate) : null,
+    },
+  });
+
+  await logProjectActivity(
+    projectId,
+    session.user.id,
+    "TIMELINE_UPDATED",
+    `${session.user.name || session.user.email} updated the project timeline`
+  );
+
+  revalidatePath("/projects");
+  revalidatePath(`/projects/${projectId}`);
+  return { success: true };
+}
+
+// ─── Project Activities ──────────────────────────────────────────
+
+/**
+ * Get project-scoped activities. Any project member can view.
+ */
+export async function getProjectActivities(projectId: string, limit: number = 50) {
+  const session = await getSessionWithRole();
+
+  // Verify membership
+  const membership = await db.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId: session.user.id } },
+  });
+  const project = await db.project.findUnique({
+    where: { id: projectId },
+    select: { ownerId: true },
+  });
+
+  if (!membership && project?.ownerId !== session.user.id) {
+    throw new Error("You do not have access to this project");
+  }
+
+  return db.projectActivity.findMany({
+    where: { projectId },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+}
+
+// ─── Project Stats ───────────────────────────────────────────────
+
+/**
+ * Get project workspace statistics. Any project member can view.
+ * Computed from a single query to avoid N+1.
+ */
+export async function getProjectStats(projectId: string) {
+  const session = await getSessionWithRole();
+
+  const project = await db.project.findUnique({
+    where: { id: projectId },
+    include: {
+      members: { select: { id: true } },
+      tasks: {
+        select: {
+          id: true,
+          completed: true,
+          priority: true,
+          dueDate: true,
+        },
+      },
+    },
+  });
+
+  if (!project) throw new Error("Project not found");
+
+  const now = new Date();
+  const tasks = project.tasks;
+  const totalMembers = project.members.length;
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter((t) => t.completed).length;
+  const pendingTasks = totalTasks - completedTasks;
+  const highPriorityTasks = tasks.filter(
+    (t) => t.priority === "high" && !t.completed
+  ).length;
+  const overdueTasks = tasks.filter(
+    (t) => !t.completed && t.dueDate && new Date(t.dueDate) < now
+  ).length;
+  const completionPercentage =
+    totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  return {
+    totalMembers,
+    totalTasks,
+    completedTasks,
+    pendingTasks,
+    highPriorityTasks,
+    overdueTasks,
+    completionPercentage,
+  };
+}
+
 // ─── Member Management ───────────────────────────────────────────
 
 /**
@@ -163,6 +428,7 @@ export async function addProjectMember(
   const session = await getSessionWithRole();
   const role = session.user.role as Role;
   requireRole(role, ["ADMIN", "MANAGER"]);
+  await requireNotArchived(projectId);
 
   // Verify project exists and user has access
   const project = await db.project.findUnique({
@@ -198,7 +464,7 @@ export async function addProjectMember(
     },
   });
 
-  // Log activity
+  // Log global activity
   await db.activity.create({
     data: {
       type: "project_member_added",
@@ -206,6 +472,14 @@ export async function addProjectMember(
       userId: session.user.id,
     },
   });
+
+  // Log project activity
+  await logProjectActivity(
+    projectId,
+    session.user.id,
+    isLeader ? "LEADER_ASSIGNED" : "MEMBER_ADDED",
+    `${session.user.name || session.user.email} added ${targetUser.name || "a user"} as ${isLeader ? "Team Leader" : "member"}`
+  );
 
   revalidatePath("/projects");
   revalidatePath(`/projects/${projectId}`);
@@ -221,6 +495,7 @@ export async function removeProjectMember(projectId: string, userId: string) {
   const session = await getSessionWithRole();
   const role = session.user.role as Role;
   requireRole(role, ["ADMIN", "MANAGER"]);
+  await requireNotArchived(projectId);
 
   const project = await db.project.findUnique({
     where: { id: projectId },
@@ -245,7 +520,7 @@ export async function removeProjectMember(projectId: string, userId: string) {
     where: { id: member.id },
   });
 
-  // Log activity
+  // Log global activity
   await db.activity.create({
     data: {
       type: "project_member_removed",
@@ -253,6 +528,14 @@ export async function removeProjectMember(projectId: string, userId: string) {
       userId: session.user.id,
     },
   });
+
+  // Log project activity
+  await logProjectActivity(
+    projectId,
+    session.user.id,
+    "MEMBER_REMOVED",
+    `${session.user.name || session.user.email} removed ${member.user.name || "a user"} from the project`
+  );
 
   revalidatePath("/projects");
   revalidatePath(`/projects/${projectId}`);
@@ -330,6 +613,7 @@ export async function createProjectTask(
   }
 ) {
   const session = await getSessionWithRole();
+  await requireNotArchived(projectId);
 
   // Verify project membership
   const membership = await db.projectMember.findUnique({
@@ -356,6 +640,16 @@ export async function createProjectTask(
     select: { name: true },
   });
 
+  // Get assignee name if assigned
+  let assigneeName: string | null = null;
+  if (options?.assigneeId) {
+    const assignee = await db.user.findUnique({
+      where: { id: options.assigneeId },
+      select: { name: true },
+    });
+    assigneeName = assignee?.name || null;
+  }
+
   const task = await db.projectTask.create({
     data: {
       title: title.trim(),
@@ -373,7 +667,7 @@ export async function createProjectTask(
     },
   });
 
-  // Log activity
+  // Log global activity
   await db.activity.create({
     data: {
       type: "project_task_created",
@@ -381,6 +675,13 @@ export async function createProjectTask(
       userId: session.user.id,
     },
   });
+
+  // Log project activity
+  const actMsg = assigneeName
+    ? `${session.user.name || session.user.email} created task "${title}" and assigned it to ${assigneeName}`
+    : `${session.user.name || session.user.email} created task "${title}"`;
+
+  await logProjectActivity(projectId, session.user.id, "TASK_CREATED", actMsg);
 
   revalidatePath("/projects");
   revalidatePath(`/projects/${projectId}`);
@@ -405,9 +706,11 @@ export async function updateProjectTask(
 
   const task = await db.projectTask.findUnique({
     where: { id: taskId },
-    select: { id: true, projectId: true, assigneeId: true, createdById: true },
+    select: { id: true, title: true, projectId: true, assigneeId: true, createdById: true },
   });
   if (!task) throw new Error("Task not found");
+
+  await requireNotArchived(task.projectId);
 
   // Permission check: ADMIN/MANAGER, assignee, or creator
   const isAssignee = task.assigneeId === session.user.id;
@@ -449,6 +752,17 @@ export async function updateProjectTask(
     },
   });
 
+  // Log project activity for reassignment
+  if (updates.assigneeId !== undefined) {
+    const newAssignee = updates.assigneeId
+      ? await db.user.findUnique({ where: { id: updates.assigneeId }, select: { name: true } })
+      : null;
+    const msg = newAssignee
+      ? `${session.user.name || session.user.email} assigned "${task.title}" to ${newAssignee.name || "a user"}`
+      : `${session.user.name || session.user.email} unassigned "${task.title}"`;
+    await logProjectActivity(task.projectId, session.user.id, "TASK_UPDATED", msg);
+  }
+
   revalidatePath("/projects");
   revalidatePath(`/projects/${task.projectId}`);
   return updated;
@@ -467,6 +781,8 @@ export async function deleteProjectTask(taskId: string) {
   });
   if (!task) throw new Error("Task not found");
 
+  await requireNotArchived(task.projectId);
+
   const isCreator = task.createdById === session.user.id;
   const isAdminOrManager = role === "ADMIN" || role === "MANAGER";
 
@@ -474,9 +790,17 @@ export async function deleteProjectTask(taskId: string) {
     throw new Error("You do not have permission to delete this task");
   }
 
+  // Log project activity BEFORE deletion so projectId is available
+  await logProjectActivity(
+    task.projectId,
+    session.user.id,
+    "TASK_UPDATED",
+    `${session.user.name || session.user.email} deleted task "${task.title}"`
+  );
+
   await db.projectTask.delete({ where: { id: taskId } });
 
-  // Log activity
+  // Log global activity
   await db.activity.create({
     data: {
       type: "project_task_deleted",
@@ -503,6 +827,8 @@ export async function toggleProjectTask(taskId: string) {
     include: { subtasks: true },
   });
   if (!task) throw new Error("Task not found");
+
+  await requireNotArchived(task.projectId);
 
   const isAssignee = task.assigneeId === session.user.id;
   const isCreator = task.createdById === session.user.id;
@@ -535,6 +861,16 @@ export async function toggleProjectTask(taskId: string) {
     },
   });
 
+  // Log project activity when completing
+  if (newCompleted) {
+    await logProjectActivity(
+      task.projectId,
+      session.user.id,
+      "TASK_COMPLETED",
+      `${session.user.name || session.user.email} completed task "${task.title}"`
+    );
+  }
+
   revalidatePath("/projects");
   revalidatePath(`/projects/${task.projectId}`);
   return updated;
@@ -558,6 +894,8 @@ export async function createProjectSubtask(
     select: { id: true, projectId: true, completed: true, title: true },
   });
   if (!task) throw new Error("Task not found");
+
+  await requireNotArchived(task.projectId);
 
   // Verify project membership
   const membership = await db.projectMember.findUnique({
@@ -609,9 +947,11 @@ export async function toggleProjectSubtask(subtaskId: string) {
 
   const subtask = await db.projectSubtask.findUnique({
     where: { id: subtaskId },
-    include: { projectTask: { select: { id: true, projectId: true, completed: true } } },
+    include: { projectTask: { select: { id: true, title: true, projectId: true, completed: true } } },
   });
   if (!subtask) throw new Error("Subtask not found");
+
+  await requireNotArchived(subtask.projectTask.projectId);
 
   // Verify project membership
   const membership = await db.projectMember.findUnique({
@@ -642,6 +982,13 @@ export async function toggleProjectSubtask(subtaskId: string) {
       where: { id: subtask.projectTask.id },
       data: { completed: true, completedAt: new Date() },
     });
+    // Log completion via subtask sync
+    await logProjectActivity(
+      subtask.projectTask.projectId,
+      session.user.id,
+      "TASK_COMPLETED",
+      `${session.user.name || session.user.email} completed all subtasks of "${subtask.projectTask.title}"`
+    );
   } else if (!allCompleted && parentWasCompleted) {
     await db.projectTask.update({
       where: { id: subtask.projectTask.id },
@@ -666,6 +1013,8 @@ export async function deleteProjectSubtask(subtaskId: string) {
   });
   if (!subtask) throw new Error("Subtask not found");
 
+  await requireNotArchived(subtask.projectTask.projectId);
+
   // Verify project membership
   const membership = await db.projectMember.findUnique({
     where: { projectId_userId: { projectId: subtask.projectTask.projectId, userId: session.user.id } }
@@ -675,6 +1024,43 @@ export async function deleteProjectSubtask(subtaskId: string) {
   await db.projectSubtask.delete({ where: { id: subtaskId } });
   revalidatePath("/projects");
   revalidatePath(`/projects/${subtask.projectTask.projectId}`);
+  return { success: true };
+}
+
+// ─── Project Resources ───────────────────────────────────────────
+
+/**
+ * Delete a project resource. ADMIN, MANAGER, or Project Owner only.
+ */
+export async function deleteProjectResource(resourceId: string) {
+  const session = await getSessionWithRole();
+  const role = session.user.role as Role;
+
+  const resource = await db.projectResource.findUnique({
+    where: { id: resourceId },
+    include: { project: { select: { id: true, name: true, ownerId: true, status: true } } },
+  });
+  if (!resource) throw new Error("Resource not found");
+
+  if (resource.project.status === "ARCHIVED") {
+    throw new Error("This project is archived and read-only");
+  }
+
+  const isOwner = resource.project.ownerId === session.user.id;
+  if (role !== "ADMIN" && role !== "MANAGER" && !isOwner) {
+    throw new Error("You do not have permission to delete this resource");
+  }
+
+  await db.projectResource.delete({ where: { id: resourceId } });
+
+  await logProjectActivity(
+    resource.project.id,
+    session.user.id,
+    "RESOURCE_DELETED",
+    `${session.user.name || session.user.email} deleted resource "${resource.filename}"`
+  );
+
+  revalidatePath(`/projects/${resource.project.id}`);
   return { success: true };
 }
 
@@ -700,7 +1086,7 @@ export async function deleteProject(projectId: string) {
 
   await db.project.delete({ where: { id: projectId } });
 
-  // Log activity
+  // Log global activity (project record is gone, so no project activity)
   await db.activity.create({
     data: {
       type: "project_deleted",

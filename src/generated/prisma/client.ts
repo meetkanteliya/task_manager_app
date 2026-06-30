@@ -81,3 +81,13 @@ export type ProjectTask = Prisma.ProjectTaskModel
  * 
  */
 export type ProjectSubtask = Prisma.ProjectSubtaskModel
+/**
+ * Model ProjectActivity
+ * 
+ */
+export type ProjectActivity = Prisma.ProjectActivityModel
+/**
+ * Model ProjectResource
+ * 
+ */
+export type ProjectResource = Prisma.ProjectResourceModel

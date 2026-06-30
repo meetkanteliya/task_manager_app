@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { FolderKanban, Plus } from "lucide-react";
+import { FolderKanban, Plus, Search } from "lucide-react";
 import { getProjects } from "@/lib/actions/projects";
 import ProjectCard from "@/components/projects/ProjectCard";
 import CreateProjectDialog from "@/components/projects/CreateProjectDialog";
+import ProjectSearch, { filterProjects } from "@/components/projects/ProjectSearch";
 
 type ProjectData = Awaited<ReturnType<typeof getProjects>>[number];
 
@@ -15,6 +16,7 @@ export default function ProjectsPage() {
   const router = useRouter();
   const role = (session?.user?.role ?? "MEMBER") as string;
   const [projects, setProjects] = useState<ProjectData[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -49,6 +51,8 @@ export default function ProjectsPage() {
     return null;
   }
 
+  const filtered = filterProjects(projects, searchQuery);
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       {/* Header */}
@@ -73,6 +77,13 @@ export default function ProjectsPage() {
           </button>
         )}
       </div>
+
+      {/* Search Input */}
+      {!isLoading && projects.length > 0 && (
+        <div className="flex items-center justify-between">
+          <ProjectSearch onSearch={setSearchQuery} />
+        </div>
+      )}
 
       {/* Content */}
       {isLoading ? (
@@ -104,9 +115,28 @@ export default function ProjectsPage() {
             Create Project
           </button>
         </section>
+      ) : filtered.length === 0 ? (
+        <section className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-12">
+          <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800">
+            <Search size={28} />
+          </div>
+          <h2 className="mt-5 text-xl font-bold text-slate-900 dark:text-slate-100">
+            No matching projects
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
+            Your search query did not match any projects in this workspace.
+          </p>
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          >
+            Clear Search
+          </button>
+        </section>
       ) : (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {projects.map((project) => (
+          {filtered.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
         </div>

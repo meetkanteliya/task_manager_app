@@ -13,6 +13,12 @@ import {
   UserMinus,
   PlusCircle,
   HelpCircle,
+  Settings2,
+  Upload,
+  Archive,
+  Crown,
+  Edit,
+  Calendar,
 } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
 import { ActivityType } from "@/types/task";
@@ -31,6 +37,16 @@ const icons: Record<ActivityType, typeof CirclePlus> = {
   project_member_removed: UserMinus,
   project_task_created: PlusCircle,
   project_task_deleted: Trash2,
+  project_status_changed: Settings2,
+  project_task_completed: CheckCircle2,
+  project_task_updated: Edit,
+  project_subtask_completed: ListChecks,
+  project_leader_assigned: Crown,
+  project_leader_removed: Crown,
+  project_resource_uploaded: Upload,
+  project_resource_deleted: Trash2,
+  project_timeline_updated: Calendar,
+  project_archived: Archive,
 };
 
 export default function ActivityTimeline() {

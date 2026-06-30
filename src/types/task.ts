@@ -42,4 +42,14 @@ export type ActivityType =
   | "project_member_added"
   | "project_member_removed"
   | "project_task_created"
-  | "project_task_deleted";
+  | "project_task_deleted"
+  | "project_status_changed"
+  | "project_task_completed"
+  | "project_task_updated"
+  | "project_subtask_completed"
+  | "project_leader_assigned"
+  | "project_leader_removed"
+  | "project_resource_uploaded"
+  | "project_resource_deleted"
+  | "project_timeline_updated"
+  | "project_archived";

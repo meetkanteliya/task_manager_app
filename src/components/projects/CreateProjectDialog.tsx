@@ -13,6 +13,8 @@ type Props = {
 export default function CreateProjectDialog({ onClose, onCreated }: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -21,7 +23,12 @@ export default function CreateProjectDialog({ onClose, onCreated }: Props) {
 
     startTransition(async () => {
       try {
-        await createProject(name.trim(), description.trim() || undefined);
+        await createProject(
+          name.trim(),
+          description.trim() || undefined,
+          startDate || undefined,
+          endDate || undefined
+        );
         toast.success("Project created");
         onCreated();
       } catch (error) {
@@ -70,10 +77,36 @@ export default function CreateProjectDialog({ onClose, onCreated }: Props) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief project description..."
-              rows={3}
+              rows={2}
               maxLength={500}
               className="w-full rounded-xl border border-slate-200 bg-[#F8FAFC] px-4 py-2.5 text-sm font-medium text-slate-900 outline-none ring-[#2563EB]/20 placeholder:text-slate-400 focus:border-[#2563EB] focus:ring-4 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-[#F8FAFC] px-4 py-2.5 text-sm font-medium text-slate-900 outline-none focus:border-[#2563EB] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-[#F8FAFC] px-4 py-2.5 text-sm font-medium text-slate-900 outline-none focus:border-[#2563EB] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+              />
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-2">

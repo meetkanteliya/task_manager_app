@@ -197,6 +197,8 @@ export type UserWhereInput = {
   assignedProjectTasks?: Prisma.ProjectTaskListRelationFilter
   createdProjectTasks?: Prisma.ProjectTaskListRelationFilter
   assignedProjectSubtasks?: Prisma.ProjectSubtaskListRelationFilter
+  projectActivities?: Prisma.ProjectActivityListRelationFilter
+  uploadedResources?: Prisma.ProjectResourceListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -213,6 +215,8 @@ export type UserOrderByWithRelationInput = {
   assignedProjectTasks?: Prisma.ProjectTaskOrderByRelationAggregateInput
   createdProjectTasks?: Prisma.ProjectTaskOrderByRelationAggregateInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskOrderByRelationAggregateInput
+  projectActivities?: Prisma.ProjectActivityOrderByRelationAggregateInput
+  uploadedResources?: Prisma.ProjectResourceOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -232,6 +236,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   assignedProjectTasks?: Prisma.ProjectTaskListRelationFilter
   createdProjectTasks?: Prisma.ProjectTaskListRelationFilter
   assignedProjectSubtasks?: Prisma.ProjectSubtaskListRelationFilter
+  projectActivities?: Prisma.ProjectActivityListRelationFilter
+  uploadedResources?: Prisma.ProjectResourceListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -272,6 +278,8 @@ export type UserCreateInput = {
   assignedProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutCreatedByInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -288,6 +296,8 @@ export type UserUncheckedCreateInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutCreatedByInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityUncheckedCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserUpdateInput = {
@@ -304,6 +314,8 @@ export type UserUpdateInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutCreatedByNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -320,6 +332,8 @@ export type UserUncheckedUpdateInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutCreatedByNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUncheckedUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -504,6 +518,34 @@ export type UserUpdateOneWithoutAssignedProjectSubtasksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAssignedProjectSubtasksInput, Prisma.UserUpdateWithoutAssignedProjectSubtasksInput>, Prisma.UserUncheckedUpdateWithoutAssignedProjectSubtasksInput>
 }
 
+export type UserCreateNestedOneWithoutProjectActivitiesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProjectActivitiesInput, Prisma.UserUncheckedCreateWithoutProjectActivitiesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectActivitiesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutProjectActivitiesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutProjectActivitiesInput, Prisma.UserUncheckedCreateWithoutProjectActivitiesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectActivitiesInput
+  upsert?: Prisma.UserUpsertWithoutProjectActivitiesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProjectActivitiesInput, Prisma.UserUpdateWithoutProjectActivitiesInput>, Prisma.UserUncheckedUpdateWithoutProjectActivitiesInput>
+}
+
+export type UserCreateNestedOneWithoutUploadedResourcesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUploadedResourcesInput, Prisma.UserUncheckedCreateWithoutUploadedResourcesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUploadedResourcesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutUploadedResourcesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutUploadedResourcesInput, Prisma.UserUncheckedCreateWithoutUploadedResourcesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutUploadedResourcesInput
+  upsert?: Prisma.UserUpsertWithoutUploadedResourcesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutUploadedResourcesInput, Prisma.UserUpdateWithoutUploadedResourcesInput>, Prisma.UserUncheckedUpdateWithoutUploadedResourcesInput>
+}
+
 export type UserCreateWithoutTasksInput = {
   id?: string
   name?: string | null
@@ -517,6 +559,8 @@ export type UserCreateWithoutTasksInput = {
   assignedProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutCreatedByInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserUncheckedCreateWithoutTasksInput = {
@@ -532,6 +576,8 @@ export type UserUncheckedCreateWithoutTasksInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutCreatedByInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityUncheckedCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserCreateOrConnectWithoutTasksInput = {
@@ -563,6 +609,8 @@ export type UserUpdateWithoutTasksInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutCreatedByNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTasksInput = {
@@ -578,6 +626,8 @@ export type UserUncheckedUpdateWithoutTasksInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutCreatedByNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUncheckedUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserCreateWithoutActivitiesInput = {
@@ -593,6 +643,8 @@ export type UserCreateWithoutActivitiesInput = {
   assignedProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutCreatedByInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserUncheckedCreateWithoutActivitiesInput = {
@@ -608,6 +660,8 @@ export type UserUncheckedCreateWithoutActivitiesInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutCreatedByInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityUncheckedCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserCreateOrConnectWithoutActivitiesInput = {
@@ -639,6 +693,8 @@ export type UserUpdateWithoutActivitiesInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutCreatedByNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutActivitiesInput = {
@@ -654,6 +710,8 @@ export type UserUncheckedUpdateWithoutActivitiesInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutCreatedByNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUncheckedUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserCreateWithoutOwnedProjectsInput = {
@@ -669,6 +727,8 @@ export type UserCreateWithoutOwnedProjectsInput = {
   assignedProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutCreatedByInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserUncheckedCreateWithoutOwnedProjectsInput = {
@@ -684,6 +744,8 @@ export type UserUncheckedCreateWithoutOwnedProjectsInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutCreatedByInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityUncheckedCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserCreateOrConnectWithoutOwnedProjectsInput = {
@@ -715,6 +777,8 @@ export type UserUpdateWithoutOwnedProjectsInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutCreatedByNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOwnedProjectsInput = {
@@ -730,6 +794,8 @@ export type UserUncheckedUpdateWithoutOwnedProjectsInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutCreatedByNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUncheckedUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserCreateWithoutProjectMembersInput = {
@@ -745,6 +811,8 @@ export type UserCreateWithoutProjectMembersInput = {
   assignedProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutCreatedByInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserUncheckedCreateWithoutProjectMembersInput = {
@@ -760,6 +828,8 @@ export type UserUncheckedCreateWithoutProjectMembersInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutCreatedByInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityUncheckedCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserCreateOrConnectWithoutProjectMembersInput = {
@@ -791,6 +861,8 @@ export type UserUpdateWithoutProjectMembersInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutCreatedByNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectMembersInput = {
@@ -806,6 +878,8 @@ export type UserUncheckedUpdateWithoutProjectMembersInput = {
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutCreatedByNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUncheckedUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserCreateWithoutAssignedProjectTasksInput = {
@@ -821,6 +895,8 @@ export type UserCreateWithoutAssignedProjectTasksInput = {
   projectMembers?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
   createdProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutCreatedByInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserUncheckedCreateWithoutAssignedProjectTasksInput = {
@@ -836,6 +912,8 @@ export type UserUncheckedCreateWithoutAssignedProjectTasksInput = {
   projectMembers?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutCreatedByInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityUncheckedCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserCreateOrConnectWithoutAssignedProjectTasksInput = {
@@ -856,6 +934,8 @@ export type UserCreateWithoutCreatedProjectTasksInput = {
   projectMembers?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
   assignedProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserUncheckedCreateWithoutCreatedProjectTasksInput = {
@@ -871,6 +951,8 @@ export type UserUncheckedCreateWithoutCreatedProjectTasksInput = {
   projectMembers?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityUncheckedCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserCreateOrConnectWithoutCreatedProjectTasksInput = {
@@ -902,6 +984,8 @@ export type UserUpdateWithoutAssignedProjectTasksInput = {
   projectMembers?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutCreatedByNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAssignedProjectTasksInput = {
@@ -917,6 +1001,8 @@ export type UserUncheckedUpdateWithoutAssignedProjectTasksInput = {
   projectMembers?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutCreatedByNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUncheckedUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserUpsertWithoutCreatedProjectTasksInput = {
@@ -943,6 +1029,8 @@ export type UserUpdateWithoutCreatedProjectTasksInput = {
   projectMembers?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
   assignedProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedProjectTasksInput = {
@@ -958,6 +1046,8 @@ export type UserUncheckedUpdateWithoutCreatedProjectTasksInput = {
   projectMembers?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUncheckedUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserCreateWithoutAssignedProjectSubtasksInput = {
@@ -973,6 +1063,8 @@ export type UserCreateWithoutAssignedProjectSubtasksInput = {
   projectMembers?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
   assignedProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
   createdProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutCreatedByInput
+  projectActivities?: Prisma.ProjectActivityCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserUncheckedCreateWithoutAssignedProjectSubtasksInput = {
@@ -988,6 +1080,8 @@ export type UserUncheckedCreateWithoutAssignedProjectSubtasksInput = {
   projectMembers?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutCreatedByInput
+  projectActivities?: Prisma.ProjectActivityUncheckedCreateNestedManyWithoutUserInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedCreateNestedManyWithoutUploadedByInput
 }
 
 export type UserCreateOrConnectWithoutAssignedProjectSubtasksInput = {
@@ -1019,6 +1113,8 @@ export type UserUpdateWithoutAssignedProjectSubtasksInput = {
   projectMembers?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
   assignedProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutCreatedByNestedInput
+  projectActivities?: Prisma.ProjectActivityUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUpdateManyWithoutUploadedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAssignedProjectSubtasksInput = {
@@ -1034,6 +1130,176 @@ export type UserUncheckedUpdateWithoutAssignedProjectSubtasksInput = {
   projectMembers?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
   assignedProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
   createdProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutCreatedByNestedInput
+  projectActivities?: Prisma.ProjectActivityUncheckedUpdateManyWithoutUserNestedInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedUpdateManyWithoutUploadedByNestedInput
+}
+
+export type UserCreateWithoutProjectActivitiesInput = {
+  id?: string
+  name?: string | null
+  email: string
+  password: string
+  role?: $Enums.Role
+  createdAt?: Date | string
+  tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
+  activities?: Prisma.ActivityCreateNestedManyWithoutUserInput
+  ownedProjects?: Prisma.ProjectCreateNestedManyWithoutOwnerInput
+  projectMembers?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
+  assignedProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
+  createdProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutCreatedByInput
+  assignedProjectSubtasks?: Prisma.ProjectSubtaskCreateNestedManyWithoutAssigneeInput
+  uploadedResources?: Prisma.ProjectResourceCreateNestedManyWithoutUploadedByInput
+}
+
+export type UserUncheckedCreateWithoutProjectActivitiesInput = {
+  id?: string
+  name?: string | null
+  email: string
+  password: string
+  role?: $Enums.Role
+  createdAt?: Date | string
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
+  activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutUserInput
+  ownedProjects?: Prisma.ProjectUncheckedCreateNestedManyWithoutOwnerInput
+  projectMembers?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
+  createdProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutCreatedByInput
+  assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedCreateNestedManyWithoutUploadedByInput
+}
+
+export type UserCreateOrConnectWithoutProjectActivitiesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutProjectActivitiesInput, Prisma.UserUncheckedCreateWithoutProjectActivitiesInput>
+}
+
+export type UserUpsertWithoutProjectActivitiesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutProjectActivitiesInput, Prisma.UserUncheckedUpdateWithoutProjectActivitiesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutProjectActivitiesInput, Prisma.UserUncheckedCreateWithoutProjectActivitiesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutProjectActivitiesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutProjectActivitiesInput, Prisma.UserUncheckedUpdateWithoutProjectActivitiesInput>
+}
+
+export type UserUpdateWithoutProjectActivitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
+  activities?: Prisma.ActivityUpdateManyWithoutUserNestedInput
+  ownedProjects?: Prisma.ProjectUpdateManyWithoutOwnerNestedInput
+  projectMembers?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
+  assignedProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
+  createdProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutCreatedByNestedInput
+  assignedProjectSubtasks?: Prisma.ProjectSubtaskUpdateManyWithoutAssigneeNestedInput
+  uploadedResources?: Prisma.ProjectResourceUpdateManyWithoutUploadedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutProjectActivitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
+  activities?: Prisma.ActivityUncheckedUpdateManyWithoutUserNestedInput
+  ownedProjects?: Prisma.ProjectUncheckedUpdateManyWithoutOwnerNestedInput
+  projectMembers?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  createdProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutCreatedByNestedInput
+  assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  uploadedResources?: Prisma.ProjectResourceUncheckedUpdateManyWithoutUploadedByNestedInput
+}
+
+export type UserCreateWithoutUploadedResourcesInput = {
+  id?: string
+  name?: string | null
+  email: string
+  password: string
+  role?: $Enums.Role
+  createdAt?: Date | string
+  tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
+  activities?: Prisma.ActivityCreateNestedManyWithoutUserInput
+  ownedProjects?: Prisma.ProjectCreateNestedManyWithoutOwnerInput
+  projectMembers?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
+  assignedProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutAssigneeInput
+  createdProjectTasks?: Prisma.ProjectTaskCreateNestedManyWithoutCreatedByInput
+  assignedProjectSubtasks?: Prisma.ProjectSubtaskCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutUploadedResourcesInput = {
+  id?: string
+  name?: string | null
+  email: string
+  password: string
+  role?: $Enums.Role
+  createdAt?: Date | string
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
+  activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutUserInput
+  ownedProjects?: Prisma.ProjectUncheckedCreateNestedManyWithoutOwnerInput
+  projectMembers?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
+  assignedProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutAssigneeInput
+  createdProjectTasks?: Prisma.ProjectTaskUncheckedCreateNestedManyWithoutCreatedByInput
+  assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedCreateNestedManyWithoutAssigneeInput
+  projectActivities?: Prisma.ProjectActivityUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutUploadedResourcesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutUploadedResourcesInput, Prisma.UserUncheckedCreateWithoutUploadedResourcesInput>
+}
+
+export type UserUpsertWithoutUploadedResourcesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutUploadedResourcesInput, Prisma.UserUncheckedUpdateWithoutUploadedResourcesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutUploadedResourcesInput, Prisma.UserUncheckedCreateWithoutUploadedResourcesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutUploadedResourcesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutUploadedResourcesInput, Prisma.UserUncheckedUpdateWithoutUploadedResourcesInput>
+}
+
+export type UserUpdateWithoutUploadedResourcesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
+  activities?: Prisma.ActivityUpdateManyWithoutUserNestedInput
+  ownedProjects?: Prisma.ProjectUpdateManyWithoutOwnerNestedInput
+  projectMembers?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
+  assignedProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutAssigneeNestedInput
+  createdProjectTasks?: Prisma.ProjectTaskUpdateManyWithoutCreatedByNestedInput
+  assignedProjectSubtasks?: Prisma.ProjectSubtaskUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutUploadedResourcesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
+  activities?: Prisma.ActivityUncheckedUpdateManyWithoutUserNestedInput
+  ownedProjects?: Prisma.ProjectUncheckedUpdateManyWithoutOwnerNestedInput
+  projectMembers?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
+  assignedProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  createdProjectTasks?: Prisma.ProjectTaskUncheckedUpdateManyWithoutCreatedByNestedInput
+  assignedProjectSubtasks?: Prisma.ProjectSubtaskUncheckedUpdateManyWithoutAssigneeNestedInput
+  projectActivities?: Prisma.ProjectActivityUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1049,6 +1315,8 @@ export type UserCountOutputType = {
   assignedProjectTasks: number
   createdProjectTasks: number
   assignedProjectSubtasks: number
+  projectActivities: number
+  uploadedResources: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1059,6 +1327,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   assignedProjectTasks?: boolean | UserCountOutputTypeCountAssignedProjectTasksArgs
   createdProjectTasks?: boolean | UserCountOutputTypeCountCreatedProjectTasksArgs
   assignedProjectSubtasks?: boolean | UserCountOutputTypeCountAssignedProjectSubtasksArgs
+  projectActivities?: boolean | UserCountOutputTypeCountProjectActivitiesArgs
+  uploadedResources?: boolean | UserCountOutputTypeCountUploadedResourcesArgs
 }
 
 /**
@@ -1120,6 +1390,20 @@ export type UserCountOutputTypeCountAssignedProjectSubtasksArgs<ExtArgs extends 
   where?: Prisma.ProjectSubtaskWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountProjectActivitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectActivityWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountUploadedResourcesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectResourceWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1135,6 +1419,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   assignedProjectTasks?: boolean | Prisma.User$assignedProjectTasksArgs<ExtArgs>
   createdProjectTasks?: boolean | Prisma.User$createdProjectTasksArgs<ExtArgs>
   assignedProjectSubtasks?: boolean | Prisma.User$assignedProjectSubtasksArgs<ExtArgs>
+  projectActivities?: boolean | Prisma.User$projectActivitiesArgs<ExtArgs>
+  uploadedResources?: boolean | Prisma.User$uploadedResourcesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1174,6 +1460,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   assignedProjectTasks?: boolean | Prisma.User$assignedProjectTasksArgs<ExtArgs>
   createdProjectTasks?: boolean | Prisma.User$createdProjectTasksArgs<ExtArgs>
   assignedProjectSubtasks?: boolean | Prisma.User$assignedProjectSubtasksArgs<ExtArgs>
+  projectActivities?: boolean | Prisma.User$projectActivitiesArgs<ExtArgs>
+  uploadedResources?: boolean | Prisma.User$uploadedResourcesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1189,6 +1477,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     assignedProjectTasks: Prisma.$ProjectTaskPayload<ExtArgs>[]
     createdProjectTasks: Prisma.$ProjectTaskPayload<ExtArgs>[]
     assignedProjectSubtasks: Prisma.$ProjectSubtaskPayload<ExtArgs>[]
+    projectActivities: Prisma.$ProjectActivityPayload<ExtArgs>[]
+    uploadedResources: Prisma.$ProjectResourcePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1598,6 +1888,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   assignedProjectTasks<T extends Prisma.User$assignedProjectTasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assignedProjectTasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectTaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdProjectTasks<T extends Prisma.User$createdProjectTasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdProjectTasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectTaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   assignedProjectSubtasks<T extends Prisma.User$assignedProjectSubtasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$assignedProjectSubtasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectSubtaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  projectActivities<T extends Prisma.User$projectActivitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectActivitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  uploadedResources<T extends Prisma.User$uploadedResourcesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$uploadedResourcesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectResourcePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2191,6 +2483,54 @@ export type User$assignedProjectSubtasksArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.ProjectSubtaskScalarFieldEnum | Prisma.ProjectSubtaskScalarFieldEnum[]
+}
+
+/**
+ * User.projectActivities
+ */
+export type User$projectActivitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectActivity
+   */
+  select?: Prisma.ProjectActivitySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectActivity
+   */
+  omit?: Prisma.ProjectActivityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectActivityInclude<ExtArgs> | null
+  where?: Prisma.ProjectActivityWhereInput
+  orderBy?: Prisma.ProjectActivityOrderByWithRelationInput | Prisma.ProjectActivityOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectActivityWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectActivityScalarFieldEnum | Prisma.ProjectActivityScalarFieldEnum[]
+}
+
+/**
+ * User.uploadedResources
+ */
+export type User$uploadedResourcesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectResource
+   */
+  select?: Prisma.ProjectResourceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectResource
+   */
+  omit?: Prisma.ProjectResourceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectResourceInclude<ExtArgs> | null
+  where?: Prisma.ProjectResourceWhereInput
+  orderBy?: Prisma.ProjectResourceOrderByWithRelationInput | Prisma.ProjectResourceOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectResourceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectResourceScalarFieldEnum | Prisma.ProjectResourceScalarFieldEnum[]
 }
 
 /**
